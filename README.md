@@ -34,9 +34,9 @@ Personas: ecommerce marketer, performance marketing manager, DTC founder
 Target Market: US
 Language: English
 Platform: ChatGPT
-Website Domain: https://example.com
 Additional Context: Generate ad creatives that follow brand guidelines and platform policies.
 Competitors: Creatify, Pencil, AdCreative.ai
+Website Domain: https://example.com
 Generate 8 topics and 40 prompts.
 ```
 

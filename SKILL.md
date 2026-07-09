@@ -1,6 +1,6 @@
 ---
 name: geo-intent-prompt-generator
-description: Generate GEO / AI Visibility intent prompt sets for overseas markets. Use when the user wants to turn a product or service direction, target personas, market, language, platform, context, and optional website domain into commercial search topics and realistic AI monitoring prompts grouped by topic. This skill is for MVP prompt generation, not keyword difficulty scoring, competition scoring, pricing, content writing, or AI visibility measurement execution.
+description: Generate GEO / AI Visibility intent prompt sets for overseas markets. Use when the user wants to turn services, personas, target market, language, platform, additional context, competitors, and an optional website domain into commercial search topics and realistic AI monitoring prompts grouped by topic. This skill is for MVP prompt generation, not keyword difficulty scoring, competition scoring, pricing, content writing, or AI visibility measurement execution.
 ---
 
 # GEO Intent Prompt Generator
@@ -21,10 +21,12 @@ Use the user's provided inputs:
 
 - Services: product or service direction.
 - Personas: target user roles or buying decision makers.
-- Target market and language.
+- Target Market: country, region, or market to monitor.
+- Language: output language for topics and prompts.
 - Platform: ChatGPT, Perplexity, Gemini, Google AI Overview, etc.
-- Additional context: positioning, competitors, advantages, industry constraints, or focus areas.
-- Website domain: optional but strongly recommended.
+- Additional Context: positioning, advantages, industry constraints, or focus areas.
+- Competitors: direct competitors, alternatives, substitutes, or brands the customer wants to compare against.
+- Website Domain: optional but strongly recommended.
 
 If important inputs are missing, make a conservative assumption and list it in `assumptions`. Ask only when market, language, service direction, or platform is missing and cannot be inferred.
 
@@ -46,7 +48,7 @@ Use scripts only when a JSON prompt set file exists or when the user asks for va
 ## Workflow
 
 1. Collect and normalize business inputs.
-   - Required input fields: Services, Personas, Target Market, Language, Platform, Additional Context.
+   - Required input fields: Services, Personas, Target Market, Language, Platform, Additional Context, Competitors.
    - Website Domain is optional but strongly recommended.
    - Identify brand name, competitors, constraints, and assumptions only when supported by user input or website research.
 

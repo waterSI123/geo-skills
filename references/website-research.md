@@ -34,13 +34,16 @@ Return a `website_research_brief` with:
 - `one_line_description`
 - `core_services`
 - `target_personas`
-- `use_cases`
-- `differentiators`
-- `competitors_or_alternatives`
+- `products`
+- `selling_points`
+- `scenarios`
+- `customers`
+- `competitors`
 - `integrations`
-- `constraints`
+- `limitations`
 - `source_urls`
 - `confidence`
+- `confirmation_status`
 - `unconfirmed_or_inferred_items`
 
 ## Rules

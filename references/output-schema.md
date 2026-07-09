@@ -22,9 +22,9 @@ Return JSON-like structured Markdown or valid JSON when requested. Preserve thes
   "language": "",
   "platform": "",
   "additional_context": "",
+  "competitors": [],
   "website_domain": "",
   "brand_name": "",
-  "competitors": [],
   "assumptions": []
 }
 ```
@@ -40,12 +40,13 @@ Use this object when a website domain is provided. If no domain is provided, ret
   "one_line_description": "",
   "core_services": [],
   "target_personas": [],
-  "use_cases": [],
+  "products": [],
   "selling_points": [],
+  "scenarios": [],
   "customers": [],
-  "competitors_or_alternatives": [],
+  "competitors": [],
   "integrations": [],
-  "limitations_or_constraints": [],
+  "limitations": [],
   "source_urls": [],
   "confidence": "medium",
   "confirmation_status": "unconfirmed",

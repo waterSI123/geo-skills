@@ -1,7 +1,7 @@
 interface:
   display_name: "GEO Intent Prompt Generator"
   short_description: "Generate GEO intent prompt sets"
-  default_prompt: "Use $geo-intent-prompt-generator to create an AI visibility prompt set from my service, personas, market, language, platform, context, and optional website domain."
+  default_prompt: "Use $geo-intent-prompt-generator to create an AI visibility prompt set from my services, personas, target market, language, platform, additional context, competitors, and optional website domain."
 
 policy:
   allow_implicit_invocation: true
