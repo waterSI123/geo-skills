@@ -6,7 +6,6 @@ Return JSON-like structured Markdown or valid JSON when requested. Preserve thes
 {
   "input_summary": {},
   "website_research_brief": {},
-  "intent_pack": {},
   "topics": [],
   "prompt_groups": [],
   "qa_report": {}
@@ -30,19 +29,27 @@ Return JSON-like structured Markdown or valid JSON when requested. Preserve thes
 }
 ```
 
-## intent_pack
+## website_research_brief
+
+Use this object when a website domain is provided. If no domain is provided, return an empty object and note the source gap in `qa_report`.
 
 ```json
 {
-  "name": "",
-  "commercial_search_intent": "",
-  "market": "",
-  "language": "",
-  "platform": "",
-  "core_service": "",
-  "primary_personas": [],
-  "brand": "",
-  "competitors": []
+  "domain": "",
+  "official_brand_name": "",
+  "one_line_description": "",
+  "core_services": [],
+  "target_personas": [],
+  "use_cases": [],
+  "selling_points": [],
+  "customers": [],
+  "competitors_or_alternatives": [],
+  "integrations": [],
+  "limitations_or_constraints": [],
+  "source_urls": [],
+  "confidence": "medium",
+  "confirmation_status": "unconfirmed",
+  "unconfirmed_or_inferred_items": []
 }
 ```
 

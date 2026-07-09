@@ -5,7 +5,7 @@ description: Generate GEO / AI Visibility intent prompt sets for overseas market
 
 # GEO Intent Prompt Generator
 
-Generate an MVP-ready AI Visibility prompt set from customer business inputs. Treat "prompt generation" as intent-pack design, not SEO keyword expansion.
+Generate an MVP-ready AI Visibility prompt set from customer business inputs. Treat "prompt generation" as topic and prompt design, not SEO keyword expansion or a packaging exercise.
 
 ## Defaults
 
@@ -45,24 +45,26 @@ Use scripts only when a JSON prompt set file exists or when the user asks for va
 
 ## Workflow
 
-1. Normalize the business input.
-   - Identify brand name, services, personas, market, language, platform, competitors, and constraints.
-   - If a website domain is provided, perform public website research first and produce a source-backed website research brief.
-   - If website research conflicts with user input, prefer user business intent but flag the conflict.
+1. Collect and normalize business inputs.
+   - Required input fields: Services, Personas, Target Market, Language, Platform, Additional Context.
+   - Website Domain is optional but strongly recommended.
+   - Identify brand name, competitors, constraints, and assumptions only when supported by user input or website research.
 
-2. Create an intent pack.
-   - Convert the customer's service direction into one commercial search intent.
-   - Phrase the intent as what a real user wants to discover, compare, decide, or buy in the target market and platform.
-   - Avoid using internal jargon like "GEO service package" inside user-facing prompts.
+2. Research the official website when a domain is provided.
+   - Inspect public pages only.
+   - Extract brand, product, selling points, scenarios, customers, competitors, and limitations.
+   - Produce a `website_research_brief`.
+   - Ask the user to confirm or edit the brief before generating topics unless the user explicitly asks for a one-pass draft.
 
 3. Generate topics.
-   - Generate the requested number of commercial search topics.
-   - Each topic should represent a distinct monitorable buyer/search angle, not a minor wording variant.
+   - Generate the requested number of commercial search topics from the user input plus confirmed or draft website research.
+   - Each topic should be one distinct buyer/search intention, not a minor wording variant.
    - Use topic IDs such as `T01`, `T02`.
 
 4. Generate prompts by topic.
    - For each topic, generate realistic AI-user prompts in the target language.
-   - Apply the brand and intent distribution globally across the prompt set, then keep each topic balanced enough for monitoring.
+   - Apply branded/unbranded and info/commercial/transactional distribution across the full prompt set.
+   - Adapt the distribution by topic when a topic naturally needs more or fewer branded, info, commercial, or transactional prompts.
    - Include branded prompts only when a brand name is known or inferable from the website.
    - Do not force exact distribution if it makes prompts unnatural; explain deviations in QA.
 
@@ -73,14 +75,14 @@ Use scripts only when a JSON prompt set file exists or when the user asks for va
    - Check market/language naturalness.
    - Keep commercial prompts as the core monitoring surface.
 
-6. Output the prompt set.
+6. Output prompt groups.
    - Return the full structure from `references/output-schema.md`.
    - Group prompts under topics.
    - Include `qa_report` with counts, distribution, assumptions, source gaps, and any prompts that were intentionally excluded.
 
 ## Website Confirmation
 
-If website research materially changes positioning and the user has not asked for a one-pass final output, stop after `website_research_brief` and ask the user to confirm or edit it. If the user asks for a complete output in one pass, proceed and mark the brief as `unconfirmed`.
+If a website domain is provided and the user has not asked for a one-pass draft, stop after `website_research_brief` and ask the user to confirm or edit it. If the user asks for a complete output in one pass, proceed and mark the brief as `unconfirmed`.
 
 ## Do Not
 

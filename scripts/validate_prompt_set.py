@@ -13,7 +13,6 @@ from collections import Counter
 REQUIRED_TOP = [
     "input_summary",
     "website_research_brief",
-    "intent_pack",
     "topics",
     "prompt_groups",
     "qa_report",

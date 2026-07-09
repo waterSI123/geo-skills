@@ -6,7 +6,6 @@ Codex skill for generating MVP GEO / AI Visibility intent prompt sets.
 
 This skill turns customer business inputs into:
 
-- a commercial intent pack
 - website research brief when a domain is provided
 - monitoring topics
 - realistic AI-user prompts grouped by topic
