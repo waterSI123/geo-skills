@@ -12,6 +12,7 @@ optional `agents/`, `references/`, `scripts/`, and `assets/` directories.
 | --- | --- | --- |
 | `geo-client-intake-normalizer` | Ready | Extract and normalize messy client materials into standardized GEO project intake fields for downstream skills. |
 | `geo-conversation-cleaner` | Ready | Clean raw ChatGPT GEO monitoring responses into analyzable datasets and QA reports. |
+| `geo-content-writer` | Ready | Generate GEO optimization content packages with Markdown drafts, content plans, and QA reports from report-builder briefs. |
 | `geo-intent-prompt-generator` | Ready | Generate GEO / AI Visibility commercial-search topics and realistic AI monitoring prompts from services, personas, market, language, platform, competitors, and optional website research. |
 | `geo-monitor-runner` | Ready | Create manual ChatGPT run sheets, import completed answers, and validate raw GEO monitoring data. |
 | `geo-report-builder` | Ready | Build client-facing GEO diagnostic reports and content-writer briefs from structured analysis outputs. |
@@ -32,6 +33,7 @@ geo-skills/
 └── skills/
     ├── geo-client-intake-normalizer/
     ├── geo-conversation-cleaner/
+    ├── geo-content-writer/
     ├── geo-monitor-runner/
     ├── geo-report-builder/
     ├── geo-response-analyzer/

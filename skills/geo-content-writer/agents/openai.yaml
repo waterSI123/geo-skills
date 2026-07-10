@@ -1,0 +1,7 @@
+interface:
+  display_name: "GEO Content Writer"
+  short_description: "Write GEO optimization content"
+  default_prompt: "Use $geo-content-writer to turn a GEO report content brief into Markdown optimization drafts, a content plan, and a QA report."
+
+policy:
+  allow_implicit_invocation: true
