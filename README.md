@@ -14,6 +14,7 @@ optional `agents/`, `references/`, `scripts/`, and `assets/` directories.
 | `geo-conversation-cleaner` | Ready | Clean raw ChatGPT GEO monitoring responses into analyzable datasets and QA reports. |
 | `geo-intent-prompt-generator` | Ready | Generate GEO / AI Visibility commercial-search topics and realistic AI monitoring prompts from services, personas, market, language, platform, competitors, and optional website research. |
 | `geo-monitor-runner` | Ready | Create manual ChatGPT run sheets, import completed answers, and validate raw GEO monitoring data. |
+| `geo-response-analyzer` | Ready | Analyze cleaned ChatGPT responses into brand visibility, share of voice, average rank, sentiment, topic opportunities, content gaps, and risk signals. |
 
 Planned examples:
 
@@ -31,6 +32,7 @@ geo-skills/
     ├── geo-client-intake-normalizer/
     ├── geo-conversation-cleaner/
     ├── geo-monitor-runner/
+    ├── geo-response-analyzer/
     └── geo-intent-prompt-generator/
         ├── SKILL.md
         ├── agents/

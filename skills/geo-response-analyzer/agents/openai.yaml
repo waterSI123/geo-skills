@@ -1,0 +1,7 @@
+interface:
+  display_name: "GEO Response Analyzer"
+  short_description: "Analyze GEO brand visibility"
+  default_prompt: "Use $geo-response-analyzer to analyze cleaned ChatGPT GEO responses for brand visibility, share of voice, average rank, sentiment, topic gaps, and risk signals."
+
+policy:
+  allow_implicit_invocation: true
