@@ -25,6 +25,11 @@
 {
   "topic": "Brand compliant ad creative generation",
   "opportunity_level": "high",
+  "monitoring_role_focus": "market_proxy",
+  "market_response_count": 12,
+  "market_client_visibility_score": 0.25,
+  "market_weighted_visibility_score": 0.21,
+  "market_qualified_recommendation_rate": 0.0,
   "target_personas": ["performance marketing manager"],
   "strong_competitors": ["Creatify", "AdCreative.ai"],
   "content_gap_signals": ["policy_compliance_gap"],

@@ -50,6 +50,11 @@ Expected top-level fields:
 {
   "topic": "AI ad creative generator for ecommerce",
   "opportunity_level": "high",
+  "monitoring_role_focus": "market_proxy",
+  "market_response_count": 12,
+  "market_client_visibility_score": 0.25,
+  "market_weighted_visibility_score": 0.21,
+  "market_qualified_recommendation_rate": 0.0,
   "target_personas": ["ecommerce marketer"],
   "strong_competitors": ["Creatify"],
   "content_gap_signals": ["competitor_recommended_client_absent"],

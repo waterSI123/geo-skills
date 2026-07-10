@@ -1,6 +1,6 @@
 ---
 name: geo-content-writer
-description: Generate GEO / AI Visibility optimization content packages from report-builder handoff files. Use when the user has report_brief_for_content_writer.json, client_intake.json, and optionally geo_diagnostic_report.json, and needs content_plan.md, content_package.json, qa_report.json, and Markdown drafts for comparison articles, category landing pages, compliance pages, proof asset pages, FAQ sections, or entity clarification content. This skill does not collect monitoring data, analyze responses, build diagnostic reports, publish to a CMS, or invent unsupported case studies, pricing, reviews, integrations, or product claims.
+description: Generate market-proxy GEO / AI Visibility optimization content packages from report-builder handoff files. Use when the user has report_brief_for_content_writer.json, client_intake.json, and optionally geo_diagnostic_report.json, and needs content_plan.md, content_package.json, qa_report.json, and Markdown drafts for buyer topic clusters such as comparison articles, category landing pages, compliance pages, proof asset pages, FAQ sections, or entity clarification content. This skill uses market-proxy topic opportunities and does not collect monitoring data, analyze responses, build diagnostic reports, publish to a CMS, or invent unsupported case studies, pricing, reviews, integrations, or product claims.
 ---
 
 # GEO Content Writer
@@ -52,12 +52,14 @@ Use scripts for deterministic file work:
 
 2. Select content assets.
    - Prioritize high-opportunity topics and high-severity risk fixes.
+   - Treat priority topics as buyer topic clusters, not exact monitoring prompts.
    - Map `recommended_assets` and gap/risk signals to supported MVP asset types.
    - Default to at most 5 drafts unless the user asks for more.
 
 3. Draft content.
-   - Include frontmatter for target topic, persona, market, language, source signals, and URL slug.
+   - Include frontmatter for target topic, market-proxy focus, persona, market, language, source signals, and URL slug.
    - Write clear brand/entity/category context.
+   - Write for durable buyer questions and decision criteria; do not overfit copy to a single diagnostic prompt.
    - Include FAQ sections for AI-readable entity and decision answers.
    - Include competitor context without inventing competitor facts.
    - Mark missing proof with `[CLIENT EVIDENCE NEEDED]`.

@@ -18,6 +18,12 @@
   "persona": "",
   "brand_type": "",
   "intent_stage": "",
+  "monitoring_role": "market_proxy",
+  "prompt_realism_score": 0.9,
+  "demand_weight": 1.0,
+  "buyer_journey_stage": "evaluation",
+  "source_basis": ["customer_pain_point"],
+  "overfit_risk": "low",
   "run_status": "completed",
   "raw_answer": "",
   "clean_answer": "",
@@ -44,5 +50,6 @@
 - Preserve `raw_answer`.
 - Put cleaned text in `clean_answer`.
 - Do not add brand-visibility analysis fields.
+- Preserve market-proxy metadata without using it for analysis.
 - Keep one cleaned record for every raw record.
 - Use `is_analyzable` to decide downstream inclusion.

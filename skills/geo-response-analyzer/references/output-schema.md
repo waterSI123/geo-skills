@@ -13,6 +13,13 @@ One JSON object per cleaned response:
   "topic_id": "T01",
   "topic": "AI ad creative generator",
   "persona": "ecommerce marketer",
+  "monitoring_role": "market_proxy",
+  "prompt_realism_score": 0.9,
+  "demand_weight": 1.0,
+  "effective_demand_weight": 0.9,
+  "buyer_journey_stage": "evaluation",
+  "source_basis": ["customer_pain_point"],
+  "overfit_risk": "low",
   "platform": "ChatGPT",
   "is_analyzable": true,
   "brands_detected": [
@@ -46,9 +53,25 @@ One JSON object per cleaned response:
     "platform": "ChatGPT",
     "analyzable_response_count": 0,
     "brand_mentioning_response_count": 0,
+    "market_proxy_response_count": 0,
+    "market_proxy_brand_mentioning_response_count": 0,
+    "monitoring_role_breakdown": {},
     "tracked_brands": []
   },
   "client_brand": "CreativeHit",
+  "primary_kpis": {
+    "primary_scope": "market_proxy_and_buyer_evaluation",
+    "market_visibility_score": 0.0,
+    "market_visibility_rank": 1,
+    "weighted_market_visibility_score": 0.0,
+    "weighted_market_visibility_rank": 1,
+    "market_share_of_voice": 0.0,
+    "market_share_of_voice_rank": 1,
+    "market_average_position": null,
+    "market_average_position_rank": null,
+    "qualified_recommendation_rate": 0.0,
+    "qualified_recommendation_rank": 1
+  },
   "brand_metrics": [
     {
       "brand": "CreativeHit",
@@ -56,16 +79,25 @@ One JSON object per cleaned response:
       "responses_mentioned": 0,
       "visibility_score": 0.0,
       "visibility_rank": 1,
+      "weighted_visibility_score": 0.0,
+      "weighted_visibility_rank": 1,
       "mention_occurrences": 0,
       "share_of_voice": 0.0,
       "share_of_voice_rank": 1,
+      "weighted_share_of_voice": 0.0,
+      "weighted_share_of_voice_rank": 1,
       "average_position": null,
       "average_position_rank": null,
+      "weighted_average_position": null,
+      "weighted_average_position_rank": null,
       "top_3_rate": 0.0,
       "sentiment_score": null,
-      "sentiment_rank": null
+      "sentiment_rank": null,
+      "qualified_recommendation_rate": 0.0,
+      "qualified_recommendation_rank": 1
     }
   ],
+  "market_proxy_metrics": [],
   "rankings": {}
 }
 ```
@@ -81,10 +113,15 @@ One JSON object per cleaned response:
       "topic": "AI ad creative generator",
       "response_count": 0,
       "brand_mentioning_response_count": 0,
+      "market_response_count": 0,
+      "market_brand_mentioning_response_count": 0,
       "client_visibility_score": 0.0,
+      "market_client_visibility_score": 0.0,
+      "market_weighted_visibility_score": 0.0,
       "client_share_of_voice": 0.0,
       "client_average_position": null,
       "client_sentiment_score": null,
+      "market_qualified_recommendation_rate": 0.0,
       "client_absent_rate": 0.0,
       "weak_recommendation_rate": 0.0,
       "strong_competitors": [],

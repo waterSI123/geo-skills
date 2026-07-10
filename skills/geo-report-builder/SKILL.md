@@ -1,6 +1,6 @@
 ---
 name: geo-report-builder
-description: Build client-facing GEO / AI Visibility diagnostic reports from structured analysis outputs. Use when the user has visibility_analysis.json, topic_analysis.json, opportunity_findings.json, plus client_intake.json and prompt_set.json, and needs geo_diagnostic_report.md, geo_diagnostic_report.json, and report_brief_for_content_writer.json for service delivery. This skill does not collect data, clean responses, recalculate brand metrics, generate prompts, or write the final optimization articles.
+description: Build client-facing market-proxy GEO / AI Visibility diagnostic reports from structured analysis outputs. Use when the user has visibility_analysis.json, topic_analysis.json, opportunity_findings.json, plus client_intake.json and prompt_set.json, and needs geo_diagnostic_report.md, geo_diagnostic_report.json, and report_brief_for_content_writer.json for service delivery, with primary KPIs based on market_proxy and buyer_evaluation prompts rather than diagnostic probes. This skill does not collect data, clean responses, recalculate brand metrics, generate prompts, or write the final optimization articles.
 ---
 
 # GEO Report Builder
@@ -41,20 +41,21 @@ Use scripts for deterministic file work:
    - Use `analysis_summary.md` only as optional supporting context.
 
 2. Preserve metric authority.
-   - Do not recalculate visibility, share of voice, average position, or sentiment from raw responses.
-   - Read metric values from `visibility_analysis.json` and topic values from `topic_analysis.json`.
-   - State that findings are based on the monitoring sample.
+   - Do not recalculate visibility, share of voice, average position, recommendation quality, or sentiment from raw responses.
+   - Read `primary_kpis` and `market_proxy_metrics` from `visibility_analysis.json` and topic values from `topic_analysis.json`.
+   - State that primary KPIs are based on market-proxy and buyer-evaluation prompts; diagnostic and brand-control prompts are supporting context only.
 
 3. Build the report.
    - Lead with conclusions, then supporting evidence.
    - Include the eight required report sections.
    - Convert field-heavy analysis output into client-readable language.
+   - Use market-proxy wording for scorecard and executive summary.
    - Keep risk findings separate from content opportunities.
 
 4. Build the content-writer brief.
    - Select priority topics and findings.
    - Map each priority to recommended content assets.
-   - Include strong competitors, gap signals, risk signals, suggested angles, and next-step priority.
+   - Include market-proxy focus, market weighted visibility, strong competitors, gap signals, risk signals, suggested angles, and next-step priority.
 
 5. Validate.
    - Ensure required report files exist.

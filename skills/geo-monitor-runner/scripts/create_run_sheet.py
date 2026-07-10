@@ -25,6 +25,12 @@ COLUMNS = [
     "persona",
     "brand_type",
     "intent_stage",
+    "monitoring_role",
+    "prompt_realism_score",
+    "demand_weight",
+    "buyer_journey_stage",
+    "source_basis",
+    "overfit_risk",
     "run_mode",
     "model_or_surface",
     "account_context",
@@ -84,6 +90,14 @@ def first_prompt_default(prompts, key, default=""):
     return default
 
 
+def serialize_list(value):
+    if isinstance(value, list):
+        return "; ".join(str(item) for item in value if item not in (None, ""))
+    if value is None:
+        return ""
+    return str(value)
+
+
 def flatten_prompts(prompt_set):
     prompts = []
     groups = prompt_set.get("prompt_groups", [])
@@ -107,6 +121,12 @@ def flatten_prompts(prompt_set):
                     "persona": item.get("persona", ""),
                     "brand_type": item.get("brand_type", ""),
                     "intent_stage": item.get("intent_stage", ""),
+                    "monitoring_role": item.get("monitoring_role", "market_proxy"),
+                    "prompt_realism_score": item.get("prompt_realism_score", ""),
+                    "demand_weight": item.get("demand_weight", ""),
+                    "buyer_journey_stage": item.get("buyer_journey_stage", ""),
+                    "source_basis": serialize_list(item.get("source_basis", [])),
+                    "overfit_risk": item.get("overfit_risk", ""),
                 }
             )
     if not prompts and isinstance(prompt_set.get("prompts"), list):
@@ -125,6 +145,12 @@ def flatten_prompts(prompt_set):
                         "persona": item.get("persona", ""),
                         "brand_type": item.get("brand_type", ""),
                         "intent_stage": item.get("intent_stage", ""),
+                        "monitoring_role": item.get("monitoring_role", "market_proxy"),
+                        "prompt_realism_score": item.get("prompt_realism_score", ""),
+                        "demand_weight": item.get("demand_weight", ""),
+                        "buyer_journey_stage": item.get("buyer_journey_stage", ""),
+                        "source_basis": serialize_list(item.get("source_basis", [])),
+                        "overfit_risk": item.get("overfit_risk", ""),
                     }
                 )
     return prompts
@@ -202,6 +228,12 @@ def main():
                     "persona": prompt.get("persona", ""),
                     "brand_type": prompt.get("brand_type", ""),
                     "intent_stage": prompt.get("intent_stage", ""),
+                    "monitoring_role": prompt.get("monitoring_role", "market_proxy"),
+                    "prompt_realism_score": prompt.get("prompt_realism_score", ""),
+                    "demand_weight": prompt.get("demand_weight", ""),
+                    "buyer_journey_stage": prompt.get("buyer_journey_stage", ""),
+                    "source_basis": prompt.get("source_basis", ""),
+                    "overfit_risk": prompt.get("overfit_risk", ""),
                     "run_mode": "manual_sheet",
                     "model_or_surface": model_or_surface,
                     "account_context": account_context,

@@ -14,6 +14,12 @@ REQUIRED_FIELDS = [
     "prompt_id",
     "prompt",
     "platform",
+    "monitoring_role",
+    "prompt_realism_score",
+    "demand_weight",
+    "buyer_journey_stage",
+    "source_basis",
+    "overfit_risk",
     "run_status",
     "raw_answer",
     "clean_answer",
@@ -40,6 +46,16 @@ QUALITY_STATUSES = {
     "duplicate_answer",
     "unsupported_platform",
 }
+
+ALLOWED_ROLES = {"market_proxy", "buyer_evaluation", "diagnostic_probe", "brand_control"}
+ALLOWED_OVERFIT_RISKS = {"low", "medium", "high"}
+
+
+def as_float(value):
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
 
 
 def iter_jsonl(path):
@@ -102,6 +118,20 @@ def validate(path):
             errors.append(f"line {line_no}: quality_flags must be a list")
         if not isinstance(record.get("cleaning_notes"), list):
             errors.append(f"line {line_no}: cleaning_notes must be a list")
+        role = record.get("monitoring_role")
+        if role not in ALLOWED_ROLES:
+            errors.append(f"line {line_no}: invalid monitoring_role {role}")
+        realism = as_float(record.get("prompt_realism_score"))
+        if realism is None or realism < 0 or realism > 1:
+            errors.append(f"line {line_no}: prompt_realism_score must be numeric between 0 and 1")
+        demand_weight = as_float(record.get("demand_weight"))
+        if demand_weight is None or demand_weight <= 0:
+            errors.append(f"line {line_no}: demand_weight must be numeric and > 0")
+        if not isinstance(record.get("source_basis"), list):
+            errors.append(f"line {line_no}: source_basis must be a list")
+        overfit = record.get("overfit_risk")
+        if overfit not in ALLOWED_OVERFIT_RISKS:
+            errors.append(f"line {line_no}: invalid overfit_risk {overfit}")
         if record.get("run_status") == "completed" and not clean_answer and status != "empty_answer":
             warnings.append(f"line {line_no}: completed empty answer should be empty_answer")
         if status == "duplicate_answer" and not record.get("is_duplicate_answer"):

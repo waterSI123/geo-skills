@@ -10,7 +10,7 @@ Client-facing Markdown report with required sections:
 # GEO Diagnostic Report
 ## Executive Summary
 ## Project Scope
-## Overall GEO Visibility Scorecard
+## Market-Proxy GEO Visibility Scorecard
 ## Competitor Comparison
 ## Topic-Level Diagnosis
 ## Content Gap Findings
@@ -32,6 +32,7 @@ Client-facing Markdown report with required sections:
   "scope": {},
   "executive_summary": [],
   "scorecard": [],
+  "market_proxy_scorecard": [],
   "competitor_comparison": [],
   "topic_diagnosis": [],
   "content_gap_findings": [],

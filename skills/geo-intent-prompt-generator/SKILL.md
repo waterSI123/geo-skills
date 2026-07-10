@@ -1,6 +1,6 @@
 ---
 name: geo-intent-prompt-generator
-description: Generate GEO / AI Visibility intent prompt sets for overseas markets. Use when the user wants to turn services, personas, target market, language, platform, additional context, competitors, and an optional website domain into commercial search topics and realistic AI monitoring prompts grouped by topic. This skill is for MVP prompt generation, not keyword difficulty scoring, competition scoring, pricing, content writing, or AI visibility measurement execution.
+description: Generate market-proxy-first GEO / AI Visibility intent prompt sets for overseas markets. Use when the user wants to turn services, personas, target market, language, platform, customer questions, pain points, business goals, additional context, competitors, and an optional website domain into realistic AI monitoring prompts grouped by buyer topic. This skill is for MVP prompt generation and demand-proxy design, not keyword difficulty scoring, competition scoring, pricing, content writing, or AI visibility measurement execution.
 ---
 
 # GEO Intent Prompt Generator
@@ -13,6 +13,7 @@ Generate an MVP-ready AI Visibility prompt set from customer business inputs. Tr
 - Prompts per topic: 5 unless the user specifies another number.
 - Brand mix: 80% unbranded, 20% branded.
 - Intent mix: 25% info, 50% commercial, 25% transactional.
+- Monitoring role mix: about 70% `market_proxy`, 20% `buyer_evaluation`, and 10% `diagnostic_probe` or `brand_control`.
 - Default output: grouped by topics.
 
 ## Required Inputs
@@ -27,6 +28,7 @@ Use the user's provided inputs:
 - Additional Context: positioning, advantages, industry constraints, or focus areas.
 - Competitors: direct competitors, alternatives, substitutes, or brands the customer wants to compare against.
 - Website Domain: optional but strongly recommended.
+- Market-proxy demand inputs: actual buyer questions, customer pain points, buying triggers, sales-call questions, search/ad terms, customer language, conversion goals, and business KPIs when available.
 
 If important inputs are missing, make a conservative assumption and list it in `assumptions`. Ask only when market, language, service direction, or platform is missing and cannot be inferred.
 
@@ -65,13 +67,16 @@ Use scripts only when a JSON prompt set file exists or when the user asks for va
 
 4. Generate prompts by topic.
    - For each topic, generate realistic AI-user prompts in the target language.
+   - Make market-proxy prompts simulate common buyer/user questions, not narrow test phrases designed to improve a dashboard.
    - Apply branded/unbranded and info/commercial/transactional distribution across the full prompt set.
+   - Assign `monitoring_role`, `prompt_realism_score`, `demand_weight`, `buyer_journey_stage`, `source_basis`, and `overfit_risk` to every prompt.
    - Adapt the distribution by topic when a topic naturally needs more or fewer branded, info, commercial, or transactional prompts.
    - Include branded prompts only when a brand name is known or inferable from the website.
    - Do not force exact distribution if it makes prompts unnatural; explain deviations in QA.
 
 5. QA, dedupe, and localize.
    - Remove prompts that are not something a real user would ask an AI assistant.
+   - Down-weight or rewrite prompts that are too vertical, too synthetic, or only useful for a diagnostic dashboard.
    - Remove duplicates and near-duplicates.
    - Remove SEO-fragment strings and unnatural query-stuffed phrases.
    - Check market/language naturalness.
@@ -92,4 +97,5 @@ If a website domain is provided and the user has not asked for a one-pass draft,
 - Do not generate old-style SEO keyword lists as the final artifact.
 - Do not invent product claims, certifications, integrations, customers, pricing, or competitors.
 - Do not make branded prompts that ask the model to mention the brand; prompts must simulate real users, not test harness instructions.
+- Do not optimize prompts to make the client look better in the monitoring dashboard; optimize for realistic buyer demand coverage.
 - Do not use a website domain to crawl private pages, login areas, or non-public data.

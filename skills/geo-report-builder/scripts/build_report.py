@@ -180,15 +180,15 @@ def rank_text(rank):
     return f"#{rank}" if rank is not None else "n/a"
 
 
-def metric_by_brand(visibility):
-    return {item.get("brand"): item for item in visibility.get("brand_metrics", [])}
+def metric_by_brand(visibility, metrics_key="brand_metrics"):
+    return {item.get("brand"): item for item in visibility.get(metrics_key, [])}
 
 
-def client_metric(visibility, client_brand):
-    metrics = metric_by_brand(visibility)
+def client_metric(visibility, client_brand, metrics_key="brand_metrics"):
+    metrics = metric_by_brand(visibility, metrics_key=metrics_key)
     if client_brand in metrics:
         return metrics[client_brand]
-    for item in visibility.get("brand_metrics", []):
+    for item in visibility.get(metrics_key, []):
         if item.get("role") == "client":
             return item
     return {}
@@ -201,29 +201,41 @@ def leading_competitor(metrics, value_key, lower_is_better=False):
     return sorted(competitors, key=lambda item: item[value_key], reverse=not lower_is_better)[0]
 
 
+def scorecard_metrics(visibility):
+    return visibility.get("market_proxy_metrics") or visibility.get("brand_metrics", [])
+
+
 def score_interpretation(metric_name, client_value, client_rank, leading):
-    if metric_name == "Visibility Score":
+    if metric_name in {"Visibility Score", "Market Visibility Score", "Weighted Market Visibility Score"}:
         if client_value is None:
             return "Visibility could not be calculated from the supplied analysis."
         if client_value >= 0.7:
-            return "The client is consistently surfaced when tracked brands are mentioned."
+            return "The client is consistently surfaced in market-proxy buyer prompts when tracked brands are mentioned."
         if client_value >= 0.35:
-            return "The client appears in the sample, but visibility is not yet reliable."
-        return "The client is frequently absent when tracked brands are mentioned."
-    if metric_name == "Share Of Voice":
+            return "The client appears in market-proxy prompts, but visibility is not yet reliable."
+        return "The client is frequently absent in market-proxy prompts when tracked brands are mentioned."
+    if metric_name in {"Share Of Voice", "Market Share Of Voice"}:
         if client_value is None:
             return "Share of voice could not be calculated from the supplied analysis."
         if client_rank == 1:
-            return "The client takes a leading share of tracked brand mentions."
+            return "The client takes a leading share of tracked brand mentions in market-proxy prompts."
         if leading:
             return f"{leading['brand']} takes more of the tracked answer space."
         return "Competitors take more of the tracked answer space."
-    if metric_name == "Average Position":
+    if metric_name in {"Average Position", "Market Average Position"}:
         if client_value is None:
             return "The client was not mentioned often enough to establish an average position."
         if client_rank == 1:
             return "When the client appears, it tends to appear early in the answer."
         return "The client appears behind at least one tracked competitor."
+    if metric_name == "Qualified Recommendation Rate":
+        if client_value is None:
+            return "Recommendation quality could not be calculated from the supplied analysis."
+        if client_value >= 0.6:
+            return "When the client appears, it is often framed as a qualified recommendation."
+        if client_value > 0:
+            return "The client receives some qualified recommendations, but recommendation strength can improve."
+        return "The client is not yet receiving qualified recommendations in the market-proxy sample."
     if metric_name == "Sentiment Score":
         if client_value is None:
             return "The client was not mentioned often enough to score sentiment."
@@ -236,12 +248,15 @@ def score_interpretation(metric_name, client_value, client_rank, leading):
 
 
 def build_scorecard(visibility, client_brand):
-    metrics = visibility.get("brand_metrics", [])
-    client = client_metric(visibility, client_brand)
+    metrics = scorecard_metrics(visibility)
+    metrics_key = "market_proxy_metrics" if visibility.get("market_proxy_metrics") else "brand_metrics"
+    client = client_metric(visibility, client_brand, metrics_key=metrics_key)
     specs = [
-        ("Visibility Score", "visibility_score", "visibility_rank", False, format_percent),
-        ("Share Of Voice", "share_of_voice", "share_of_voice_rank", False, format_percent),
-        ("Average Position", "average_position", "average_position_rank", True, format_number),
+        ("Market Visibility Score", "visibility_score", "visibility_rank", False, format_percent),
+        ("Weighted Market Visibility Score", "weighted_visibility_score", "weighted_visibility_rank", False, format_percent),
+        ("Market Share Of Voice", "share_of_voice", "share_of_voice_rank", False, format_percent),
+        ("Market Average Position", "average_position", "average_position_rank", True, format_number),
+        ("Qualified Recommendation Rate", "qualified_recommendation_rate", "qualified_recommendation_rank", False, format_percent),
         ("Sentiment Score", "sentiment_score", "sentiment_rank", False, format_number),
     ]
     scorecard = []
@@ -262,10 +277,10 @@ def build_scorecard(visibility, client_brand):
 
 def competitor_advantage(metric, client):
     advantages = []
-    if metric.get("visibility_score", 0) > client.get("visibility_score", 0):
-        advantages.append("higher visibility")
-    if metric.get("share_of_voice", 0) > client.get("share_of_voice", 0):
-        advantages.append("higher share of voice")
+    if metric.get("weighted_visibility_score", metric.get("visibility_score", 0)) > client.get("weighted_visibility_score", client.get("visibility_score", 0)):
+        advantages.append("higher weighted market visibility")
+    if metric.get("weighted_share_of_voice", metric.get("share_of_voice", 0)) > client.get("weighted_share_of_voice", client.get("share_of_voice", 0)):
+        advantages.append("higher market share of voice")
     if client.get("average_position") is None and metric.get("average_position") is not None:
         advantages.append("appears where the client is absent")
     elif metric.get("average_position") is not None and client.get("average_position") is not None and metric["average_position"] < client["average_position"]:
@@ -276,27 +291,31 @@ def competitor_advantage(metric, client):
 
 
 def build_competitor_comparison(visibility, client_brand):
-    client = client_metric(visibility, client_brand)
+    metrics = scorecard_metrics(visibility)
+    client = client_metric(visibility, client_brand, metrics_key="market_proxy_metrics" if visibility.get("market_proxy_metrics") else "brand_metrics")
     rows = []
-    for metric in visibility.get("brand_metrics", []):
+    for metric in metrics:
         if metric.get("role") != "competitor":
             continue
         rows.append({
             "brand": metric.get("brand", ""),
             "visibility_score": metric.get("visibility_score"),
+            "weighted_visibility_score": metric.get("weighted_visibility_score"),
             "share_of_voice": metric.get("share_of_voice"),
+            "weighted_share_of_voice": metric.get("weighted_share_of_voice"),
             "average_position": metric.get("average_position"),
+            "qualified_recommendation_rate": metric.get("qualified_recommendation_rate"),
             "sentiment_score": metric.get("sentiment_score"),
             "main_advantage": competitor_advantage(metric, client),
         })
-    rows.sort(key=lambda item: (-(item.get("visibility_score") or 0), -(item.get("share_of_voice") or 0), item["brand"].lower()))
+    rows.sort(key=lambda item: (-(item.get("weighted_visibility_score") or item.get("visibility_score") or 0), -(item.get("weighted_share_of_voice") or item.get("share_of_voice") or 0), item["brand"].lower()))
     return rows
 
 
 def topic_diagnosis_text(topic):
     competitors = [item.get("brand", "") for item in topic.get("strong_competitors", []) if item.get("brand")]
     if topic.get("client_absent_rate", 0) >= 0.6 and competitors:
-        return f"The client is often absent while {', '.join(competitors[:3])} show stronger performance."
+        return f"The client is often absent in market-proxy prompts while {', '.join(competitors[:3])} show stronger performance."
     if topic.get("weak_recommendation_rate", 0) >= 0.5:
         return "The client appears in this topic but recommendation strength is weak."
     if competitors:
@@ -334,9 +353,13 @@ def build_topic_diagnosis(topic_analysis, limit=10):
             "topic": topic.get("topic", ""),
             "opportunity_level": topic.get("topic_opportunity_level", "low"),
             "client_visibility_score": topic.get("client_visibility_score"),
+            "market_client_visibility_score": topic.get("market_client_visibility_score", topic.get("client_visibility_score")),
+            "market_weighted_visibility_score": topic.get("market_weighted_visibility_score"),
+            "market_qualified_recommendation_rate": topic.get("market_qualified_recommendation_rate"),
             "client_absent_rate": topic.get("client_absent_rate"),
             "weak_recommendation_rate": topic.get("weak_recommendation_rate"),
             "strong_competitors": [item.get("brand", "") for item in topic.get("strong_competitors", []) if item.get("brand")],
+            "market_response_count": topic.get("market_response_count", topic.get("response_count", 0)),
             "content_gap_counts": topic.get("content_gap_counts", {}),
             "risk_signal_counts": topic.get("risk_signal_counts", {}),
             "diagnosis": topic_diagnosis_text(topic),
@@ -499,15 +522,17 @@ def build_action_plan(content_findings, risk_findings, topic_rows, limit=12):
 
 
 def build_executive_summary(client_brand, scorecard, topic_rows, content_gaps, risks, action_plan):
-    visibility = next((item for item in scorecard if item["metric"] == "Visibility Score"), {})
-    sov = next((item for item in scorecard if item["metric"] == "Share Of Voice"), {})
+    visibility = next((item for item in scorecard if item["metric"] == "Market Visibility Score"), {})
+    weighted_visibility = next((item for item in scorecard if item["metric"] == "Weighted Market Visibility Score"), {})
+    sov = next((item for item in scorecard if item["metric"] == "Market Share Of Voice"), {})
     top_topic = next((item for item in topic_rows if item.get("opportunity_level") in {"high", "medium"}), topic_rows[0] if topic_rows else {})
     top_gap = content_gaps[0] if content_gaps else {}
     top_risk = risks[0] if risks else {}
     next_action = action_plan[0] if action_plan else {}
     bullets = [
-        f"In this monitoring sample, {client_brand} has a visibility score of {visibility.get('client_display_value', 'n/a')} and ranks {rank_text(visibility.get('client_rank'))} among tracked brands.",
-        f"{client_brand}'s share of voice is {sov.get('client_display_value', 'n/a')}. {sov.get('interpretation', 'Competitor comparison is available in the scorecard.')}",
+        f"In market-proxy prompts, {client_brand} has a visibility score of {visibility.get('client_display_value', 'n/a')} and ranks {rank_text(visibility.get('client_rank'))} among tracked brands.",
+        f"Weighted market visibility is {weighted_visibility.get('client_display_value', 'n/a')}, which discounts low-realism or low-demand prompts.",
+        f"{client_brand}'s market share of voice is {sov.get('client_display_value', 'n/a')}. {sov.get('interpretation', 'Competitor comparison is available in the scorecard.')}",
     ]
     if top_topic:
         bullets.append(f"The highest-priority topic is {top_topic.get('topic')}, where the opportunity level is {top_topic.get('opportunity_level')}.")
@@ -562,6 +587,11 @@ def build_content_writer_brief(client, topic_rows, content_gaps, risks, action_p
         priority_topics.append({
             "topic": topic.get("topic", ""),
             "opportunity_level": topic.get("opportunity_level", "low"),
+            "monitoring_role_focus": "market_proxy",
+            "market_response_count": topic.get("market_response_count", 0),
+            "market_client_visibility_score": topic.get("market_client_visibility_score"),
+            "market_weighted_visibility_score": topic.get("market_weighted_visibility_score"),
+            "market_qualified_recommendation_rate": topic.get("market_qualified_recommendation_rate"),
             "target_personas": client.get("target_customer_roles", []),
             "strong_competitors": topic.get("strong_competitors", []),
             "content_gap_signals": gap_signals,
@@ -640,10 +670,12 @@ def build_markdown(report):
                 ["Topics / Prompts", f"{scope.get('topic_count', 0)} topics / {scope.get('prompt_count', 0)} prompts"],
                 ["Analyzable Responses", scope.get("analyzable_response_count", 0)],
                 ["Brand-Mentioning Responses", scope.get("brand_mentioning_response_count", 0)],
+                ["Market-Proxy Responses", scope.get("market_proxy_response_count", 0)],
+                ["Market-Proxy Brand-Mentioning Responses", scope.get("market_proxy_brand_mentioning_response_count", 0)],
             ],
         ),
         "",
-        "## Overall GEO Visibility Scorecard",
+        "## Market-Proxy GEO Visibility Scorecard",
         "",
         markdown_table(
             ["Metric", "Client Score", "Rank", "Leading Competitor", "Interpretation"],
@@ -664,14 +696,15 @@ def build_markdown(report):
     ])
     if report["competitor_comparison"]:
         lines.append(markdown_table(
-            ["Brand", "Visibility", "Share Of Voice", "Avg Position", "Sentiment", "Main Advantage"],
+            ["Brand", "Market Visibility", "Weighted Visibility", "Market SOV", "Avg Position", "Qualified Rec.", "Main Advantage"],
             [
                 [
                     row["brand"],
                     format_percent(row["visibility_score"]),
-                    format_percent(row["share_of_voice"]),
+                    format_percent(row.get("weighted_visibility_score")),
+                    format_percent(row.get("share_of_voice")),
                     format_number(row["average_position"]),
-                    format_number(row["sentiment_score"]),
+                    format_percent(row.get("qualified_recommendation_rate")),
                     row["main_advantage"],
                 ]
                 for row in report["competitor_comparison"]
@@ -688,7 +721,9 @@ def build_markdown(report):
                 f"### {topic['topic']}",
                 "",
                 f"- Opportunity Level: {topic['opportunity_level']}",
-                f"- Client Visibility: {format_percent(topic['client_visibility_score'])}",
+                f"- Market Client Visibility: {format_percent(topic.get('market_client_visibility_score'))}",
+                f"- Weighted Market Visibility: {format_percent(topic.get('market_weighted_visibility_score'))}",
+                f"- Qualified Recommendation Rate: {format_percent(topic.get('market_qualified_recommendation_rate'))}",
                 f"- Client Absent Rate: {format_percent(topic['client_absent_rate'])}",
                 f"- Weak Recommendation Rate: {format_percent(topic['weak_recommendation_rate'])}",
                 f"- Strong Competitors: {competitors}",
@@ -794,6 +829,10 @@ def build_report(client_intake, prompt_set, visibility, topic_analysis, opportun
     scope.update({
         "analyzable_response_count": visibility_scope.get("analyzable_response_count", 0),
         "brand_mentioning_response_count": visibility_scope.get("brand_mentioning_response_count", 0),
+        "market_proxy_response_count": visibility_scope.get("market_proxy_response_count", 0),
+        "market_proxy_brand_mentioning_response_count": visibility_scope.get("market_proxy_brand_mentioning_response_count", 0),
+        "primary_kpi_scope": visibility_scope.get("primary_kpi_scope", "market_proxy_and_buyer_evaluation"),
+        "monitoring_role_breakdown": visibility_scope.get("monitoring_role_breakdown", {}),
         "tracked_brands": visibility_scope.get("tracked_brands", []),
     })
 
@@ -814,14 +853,16 @@ def build_report(client_intake, prompt_set, visibility, topic_analysis, opportun
         "scope": scope,
         "executive_summary": executive_summary,
         "scorecard": scorecard,
+        "market_proxy_scorecard": scorecard,
         "competitor_comparison": competitor_rows,
         "topic_diagnosis": topic_rows,
         "content_gap_findings": content_gaps,
         "risk_findings": risks,
         "action_plan": action_plan,
         "method_notes": [
-            "This report is based on the supplied ChatGPT monitoring sample and structured analyzer outputs.",
-            "Visibility, share of voice, average position, and sentiment are read from geo-response-analyzer outputs rather than recalculated here.",
+            "Primary KPIs are based on market-proxy and buyer-evaluation ChatGPT prompts that simulate plausible user and buyer questions.",
+            "Diagnostic probes and brand-control prompts may support interpretation, but they are not included in primary market KPIs.",
+            "Visibility, share of voice, average position, recommendation quality, and sentiment are read from geo-response-analyzer outputs rather than recalculated here.",
             "Review-required risks should be manually checked before being treated as confirmed factual errors.",
         ],
     }

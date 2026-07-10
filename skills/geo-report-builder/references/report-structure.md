@@ -6,7 +6,7 @@ The MVP report must include these sections in this order.
 
 Use 5-8 concise bullets. Include:
 
-- Current GEO visibility state.
+- Current market-proxy GEO visibility state.
 - Client brand position relative to tracked competitors.
 - Biggest opportunity topic.
 - Biggest content gap.
@@ -29,14 +29,18 @@ Show what the report is based on:
 - prompt count
 - analyzable response count
 - brand-mentioning response count
+- market-proxy response count
+- market-proxy brand-mentioning response count
 
-## 3. Overall GEO Visibility Scorecard
+## 3. Market-Proxy GEO Visibility Scorecard
 
-Include the four required metrics:
+Include the required primary metrics:
 
-- Visibility Score
-- Share Of Voice
-- Average Position
+- Market Visibility Score
+- Weighted Market Visibility Score
+- Market Share Of Voice
+- Market Average Position
+- Qualified Recommendation Rate
 - Sentiment Score
 
 For each metric, show:
@@ -50,10 +54,11 @@ For each metric, show:
 
 Compare the client against tracked competitors across:
 
-- visibility
-- share of voice
+- market visibility
+- weighted visibility
+- market share of voice
 - average position
-- sentiment
+- qualified recommendation rate
 - likely advantage
 
 Explain whether the gap is mainly because the client is absent, lower ranked, weakly recommended, or less positively described.
@@ -64,7 +69,8 @@ Prioritize high and medium opportunity topics. For each topic, include:
 
 - topic
 - opportunity level
-- client visibility
+- market client visibility
+- weighted market visibility
 - client absent rate
 - weak recommendation rate
 - strong competitors

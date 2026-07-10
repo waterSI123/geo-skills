@@ -92,6 +92,60 @@ Every field is required:
     "status": "missing",
     "sources": [],
     "raw_evidence": []
+  },
+  "actual_buyer_questions": {
+    "value": [],
+    "status": "missing",
+    "sources": [],
+    "raw_evidence": []
+  },
+  "customer_pain_points": {
+    "value": [],
+    "status": "missing",
+    "sources": [],
+    "raw_evidence": []
+  },
+  "buying_triggers": {
+    "value": [],
+    "status": "missing",
+    "sources": [],
+    "raw_evidence": []
+  },
+  "sales_call_questions": {
+    "value": [],
+    "status": "missing",
+    "sources": [],
+    "raw_evidence": []
+  },
+  "existing_search_terms": {
+    "value": [],
+    "status": "missing",
+    "sources": [],
+    "raw_evidence": []
+  },
+  "existing_ad_keywords": {
+    "value": [],
+    "status": "missing",
+    "sources": [],
+    "raw_evidence": []
+  },
+  "existing_customer_language": {
+    "value": [],
+    "status": "missing",
+    "sources": [],
+    "raw_evidence": []
+  },
+  "conversion_goals": {
+    "value": [],
+    "status": "missing",
+    "sources": [],
+    "raw_evidence": []
+  },
+  "business_kpis": {
+    "value": [],
+    "status": "missing",
+    "sources": [],
+    "raw_evidence": []
   }
 }
 ```
@@ -173,6 +227,11 @@ Human-readable compact summary:
   "competitors": [],
   "goals": [],
   "constraints": [],
+  "actual_buyer_questions": [],
+  "customer_pain_points": [],
+  "buying_triggers": [],
+  "conversion_goals": [],
+  "business_kpis": [],
   "recommended_next_step": ""
 }
 ```

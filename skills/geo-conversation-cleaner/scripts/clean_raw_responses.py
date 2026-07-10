@@ -59,6 +59,12 @@ RAW_DEFAULTS = {
     "persona": "",
     "brand_type": "",
     "intent_stage": "",
+    "monitoring_role": "market_proxy",
+    "prompt_realism_score": 0.7,
+    "demand_weight": 1.0,
+    "buyer_journey_stage": "",
+    "source_basis": [],
+    "overfit_risk": "medium",
     "run_status": "",
     "raw_answer": "",
     "model_or_surface": "",
@@ -68,6 +74,9 @@ RAW_DEFAULTS = {
     "source_row": None,
     "notes": "",
 }
+
+ALLOWED_ROLES = {"market_proxy", "buyer_evaluation", "diagnostic_probe", "brand_control"}
+ALLOWED_OVERFIT_RISKS = {"low", "medium", "high"}
 
 
 def read_json(path):
@@ -105,6 +114,41 @@ def clean_text(text):
     text = "\n".join(lines).strip()
     text = re.sub(r"\n{3,}", "\n\n", text)
     return text
+
+
+def coerce_float(value, default):
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def normalize_role(value):
+    role = (value or "market_proxy").strip().lower()
+    return role if role in ALLOWED_ROLES else "market_proxy"
+
+
+def normalize_overfit_risk(value):
+    risk = (value or "medium").strip().lower()
+    return risk if risk in ALLOWED_OVERFIT_RISKS else "medium"
+
+
+def normalize_source_basis(value):
+    if value is None:
+        return []
+    if isinstance(value, list):
+        return [str(item).strip() for item in value if str(item).strip()]
+    text = str(value).strip()
+    if not text:
+        return []
+    if text.startswith("["):
+        try:
+            parsed = json.loads(text)
+            if isinstance(parsed, list):
+                return [str(item).strip() for item in parsed if str(item).strip()]
+        except json.JSONDecodeError:
+            pass
+    return [item.strip() for item in text.split(";") if item.strip()]
 
 
 def answer_hash(text):
@@ -174,6 +218,11 @@ def clean_records(raw_path):
         platform, platform_supported = normalize_platform(record.get("platform"))
         record["platform"] = platform
         record["run_status"] = (record.get("run_status") or "").strip().lower()
+        record["monitoring_role"] = normalize_role(record.get("monitoring_role"))
+        record["prompt_realism_score"] = min(1.0, max(0.0, coerce_float(record.get("prompt_realism_score"), 0.7)))
+        record["demand_weight"] = max(0.01, coerce_float(record.get("demand_weight"), 1.0))
+        record["source_basis"] = normalize_source_basis(record.get("source_basis"))
+        record["overfit_risk"] = normalize_overfit_risk(record.get("overfit_risk"))
         record["raw_answer"] = raw.get("raw_answer", "")
         clean_answer = clean_text(record["raw_answer"])
         record["clean_answer"] = clean_answer

@@ -1,6 +1,6 @@
 ---
 name: geo-client-intake-normalizer
-description: Extract and normalize GEO / AI Visibility client project intake from messy multi-source materials. Use when the user provides free-form client text, forms, chat transcripts, website domains, competitor notes, PDFs, PPTX files, DOC/DOCX files, spreadsheets, or other uploaded project materials and needs standardized client fields for downstream GEO skills. This skill produces a source-backed client_intake object for prompt generation, monitoring, analysis, reporting, and content writing; it does not generate prompts, run monitoring, analyze AI responses, or write optimization content.
+description: Extract and normalize GEO / AI Visibility client project intake from messy multi-source materials. Use when the user provides free-form client text, forms, chat transcripts, website domains, competitor notes, PDFs, PPTX files, DOC/DOCX files, spreadsheets, customer questions, sales-call notes, ad keywords, search terms, or other uploaded project materials and needs standardized client fields plus market-proxy demand language for downstream GEO skills. This skill produces a source-backed client_intake object for prompt generation, monitoring, analysis, reporting, and content writing; it does not generate prompts, run monitoring, analyze AI responses, or write optimization content.
 ---
 
 # GEO Client Intake Normalizer
@@ -21,6 +21,18 @@ Always output these fields, even when missing:
 - `competitor_names`
 - `geo_optimization_goals`
 - `constraints`
+
+Also output these market-proxy demand fields, even when missing:
+
+- `actual_buyer_questions`
+- `customer_pain_points`
+- `buying_triggers`
+- `sales_call_questions`
+- `existing_search_terms`
+- `existing_ad_keywords`
+- `existing_customer_language`
+- `conversion_goals`
+- `business_kpis`
 
 Each field must include `value`, `status`, and `sources`. Allowed `status` values are `confirmed`, `inferred`, `missing`, and `conflicting`.
 
@@ -50,6 +62,7 @@ Use `scripts/validate_client_intake.py` when a JSON intake file exists or when t
 
 3. Extract the core fields.
    - Fill every core field.
+   - Fill every market-proxy demand field to capture real customer language and business outcomes.
    - Use arrays for multi-value fields.
    - Record the source IDs that support each field.
    - Put unsupported but useful interpretation in `assumptions`.
@@ -65,6 +78,7 @@ Use `scripts/validate_client_intake.py` when a JSON intake file exists or when t
 
 6. Decide downstream readiness.
    - Mark `ready_for_prompt_generation` true only when service direction, target market, language, and optimization platform are available as confirmed or low-risk inferred values.
+   - Mark market-proxy readiness lower when no buyer questions, customer pain points, sales questions, search terms, ad keywords, conversion goals, or business KPIs are available.
    - Mark monitoring, analysis, report, and content readiness based on whether their required upstream artifacts exist.
 
 7. Output both machine and human summaries.

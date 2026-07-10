@@ -1,6 +1,6 @@
 ---
 name: geo-conversation-cleaner
-description: Clean and QA raw ChatGPT GEO monitoring responses into analyzable datasets. Use when the user has raw_responses.jsonl from geo-monitor-runner and needs cleaned_responses.jsonl, cleaning_report.json, cleaning_report.md, basic text normalization, quality flags, exact duplicate detection, and validation before geo-response-analyzer. This MVP supports ChatGPT raw responses only and does not analyze brand mentions, rankings, competitor visibility, sentiment, recommendations, reports, or content writing.
+description: Clean and QA raw ChatGPT GEO monitoring responses into analyzable datasets while preserving market-proxy prompt metadata. Use when the user has raw_responses.jsonl from geo-monitor-runner and needs cleaned_responses.jsonl, cleaning_report.json, cleaning_report.md, basic text normalization, quality flags, exact duplicate detection, validation, and preservation of monitoring_role, prompt_realism_score, demand_weight, buyer_journey_stage, source_basis, and overfit_risk before geo-response-analyzer. This MVP supports ChatGPT raw responses only and does not analyze brand mentions, rankings, competitor visibility, sentiment, recommendations, reports, or content writing.
 ---
 
 # GEO Conversation Cleaner

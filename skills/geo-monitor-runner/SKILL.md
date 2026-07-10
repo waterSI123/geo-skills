@@ -1,6 +1,6 @@
 ---
 name: geo-monitor-runner
-description: Create, import, and validate manual ChatGPT GEO monitoring runs from a GEO prompt set. Use when the user has prompt_set.json from geo-intent-prompt-generator and needs an MVP workflow for ChatGPT-only manual_sheet generation, manual response import, raw_responses.jsonl creation, run_manifest.json, and validation. This skill does not generate prompts, automate browser/API execution, clean responses, analyze brand visibility, create reports, or write optimization content.
+description: Create, import, and validate manual ChatGPT GEO monitoring runs from a market-proxy GEO prompt set. Use when the user has prompt_set.json from geo-intent-prompt-generator and needs an MVP workflow for ChatGPT-only manual_sheet generation, manual response import, raw_responses.jsonl creation, run_manifest.json, validation, and preservation of monitoring_role, prompt_realism_score, demand_weight, buyer_journey_stage, source_basis, and overfit_risk. This skill does not generate prompts, automate browser/API execution, clean responses, analyze brand visibility, create reports, or write optimization content.
 ---
 
 # GEO Monitor Runner
@@ -44,7 +44,7 @@ Use scripts for deterministic file work:
 
 3. Create a manual run sheet.
    - Flatten prompts into one row per prompt per run iteration.
-   - Preserve prompt IDs, topic IDs, persona, market, language, brand type, and intent stage.
+   - Preserve prompt IDs, topic IDs, persona, market, language, brand type, intent stage, monitoring role, realism score, demand weight, buyer journey, source basis, and overfit risk.
    - Leave `raw_answer` empty and `run_status` as `pending`.
 
 4. Import completed manual results.

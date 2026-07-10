@@ -36,6 +36,8 @@ Use a mix of these types:
 - One topic should cover one distinct monitorable angle.
 - Avoid tiny wording variants.
 - Avoid topics too broad to produce actionable prompts, such as "AI tools" when the service is "AI ad creative generator".
+- Avoid topics so narrow that only the monitoring operator would ask them. A valid topic should represent a buyer need cluster that can support multiple natural questions, not one synthetic prompt.
+- Prefer topics grounded in buyer pain points, buying triggers, sales-call questions, search/ad terms, competitor comparisons, or conversion goals.
 - Include at least one commercial-comparison topic.
 - Include at least one buyer-criteria topic.
 - Include competitor/alternative topics only when competitors are provided or clearly discovered from public sources.

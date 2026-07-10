@@ -12,10 +12,15 @@ For each topic, calculate:
 
 - `response_count`
 - `brand_mentioning_response_count`
+- `market_response_count`
+- `market_brand_mentioning_response_count`
 - `client_visibility_score`
+- `market_client_visibility_score`
+- `market_weighted_visibility_score`
 - `client_share_of_voice`
 - `client_average_position`
 - `client_sentiment_score`
+- `market_qualified_recommendation_rate`
 - `client_absent_rate`
 - `weak_recommendation_rate`
 - `strong_competitors`
@@ -32,6 +37,8 @@ brand-mentioning topic responses where client brand is absent / brand-mentioning
 
 If no tracked brand appears in the topic, use all analyzable topic responses as the denominator and treat the client as absent.
 
+Prefer `market_proxy` and `buyer_evaluation` records for the client absent denominator. Fall back to all analyzable records only when no market-proxy records exist for the topic.
+
 ## Weak Recommendation Rate
 
 Definition:
@@ -46,8 +53,8 @@ If the client is never mentioned in a topic, set this to `0` and let `client_abs
 
 A competitor is strong in a topic when at least one is true:
 
-- Competitor visibility is higher than client visibility.
-- Competitor share of voice is higher than client share of voice.
+- Competitor weighted market visibility is higher than client weighted market visibility.
+- Competitor weighted share of voice is higher than client weighted share of voice.
 - Competitor average position is better than client average position.
 - Competitor receives positive sentiment while the client is absent or neutral/negative.
 

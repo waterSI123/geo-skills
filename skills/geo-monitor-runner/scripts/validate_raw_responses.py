@@ -18,6 +18,23 @@ REQUIRED_FIELDS = [
 ]
 REQUIRED_KEYS = REQUIRED_FIELDS + ["raw_answer"]
 ALLOWED_STATUSES = {"pending", "completed", "failed", "skipped", "needs_retry"}
+MARKET_PROXY_FIELDS = [
+    "monitoring_role",
+    "prompt_realism_score",
+    "demand_weight",
+    "buyer_journey_stage",
+    "source_basis",
+    "overfit_risk",
+]
+ALLOWED_ROLES = {"market_proxy", "buyer_evaluation", "diagnostic_probe", "brand_control"}
+ALLOWED_OVERFIT_RISKS = {"low", "medium", "high"}
+
+
+def as_float(value):
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
 
 
 def iter_jsonl(path):
@@ -41,7 +58,7 @@ def validate(path, manifest=None):
         if not isinstance(record, dict):
             errors.append(f"line {line_no}: record must be an object")
             continue
-        for field in REQUIRED_KEYS:
+        for field in REQUIRED_KEYS + MARKET_PROXY_FIELDS:
             if field not in record:
                 errors.append(f"line {line_no}: missing required key {field}")
         for field in REQUIRED_FIELDS:
@@ -66,6 +83,20 @@ def validate(path, manifest=None):
             warnings.append(f"line {line_no}: {status} record should include notes")
         if not record.get("run_timestamp") and status == "completed":
             warnings.append(f"line {line_no}: completed record has no run_timestamp")
+        role = record.get("monitoring_role")
+        if role not in ALLOWED_ROLES:
+            errors.append(f"line {line_no}: invalid monitoring_role {role}")
+        realism = as_float(record.get("prompt_realism_score"))
+        if realism is None or realism < 0 or realism > 1:
+            errors.append(f"line {line_no}: prompt_realism_score must be numeric between 0 and 1")
+        demand_weight = as_float(record.get("demand_weight"))
+        if demand_weight is None or demand_weight <= 0:
+            errors.append(f"line {line_no}: demand_weight must be numeric and > 0")
+        if not isinstance(record.get("source_basis"), list):
+            errors.append(f"line {line_no}: source_basis must be a list")
+        overfit = record.get("overfit_risk")
+        if overfit not in ALLOWED_OVERFIT_RISKS:
+            errors.append(f"line {line_no}: invalid overfit_risk {overfit}")
         prompt_key = (record.get("prompt_id"), record.get("run_iteration"))
         prompt_runs[prompt_key] += 1
 

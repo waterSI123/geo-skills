@@ -1,7 +1,7 @@
 interface:
   display_name: "GEO Client Intake Normalizer"
-  short_description: "Normalize GEO client intake"
-  default_prompt: "Use $geo-client-intake-normalizer to extract standardized GEO client intake fields from messy text, forms, websites, competitor notes, and uploaded files."
+  short_description: "Normalize GEO intake and demand signals"
+  default_prompt: "Use $geo-client-intake-normalizer to extract standardized GEO client intake fields and market-proxy demand language from messy text, forms, websites, competitor notes, customer questions, and uploaded files."
 
 policy:
   allow_implicit_invocation: true

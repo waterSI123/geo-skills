@@ -24,6 +24,13 @@ REQUIRED_ANALYZED_FIELDS = {
     "client_brand_mention_type",
     "client_brand_sentiment",
     "recommended_brands_order",
+    "monitoring_role",
+    "prompt_realism_score",
+    "demand_weight",
+    "effective_demand_weight",
+    "buyer_journey_stage",
+    "source_basis",
+    "overfit_risk",
     "content_gap_signals",
     "risk_signals",
     "analysis_method",
@@ -35,15 +42,26 @@ REQUIRED_METRIC_FIELDS = {
     "responses_mentioned",
     "visibility_score",
     "visibility_rank",
+    "weighted_visibility_score",
+    "weighted_visibility_rank",
     "mention_occurrences",
     "share_of_voice",
     "share_of_voice_rank",
+    "weighted_share_of_voice",
+    "weighted_share_of_voice_rank",
     "average_position",
     "average_position_rank",
+    "weighted_average_position",
+    "weighted_average_position_rank",
     "top_3_rate",
     "sentiment_score",
     "sentiment_rank",
+    "qualified_recommendation_rate",
+    "qualified_recommendation_rank",
 }
+
+ALLOWED_ROLES = {"market_proxy", "buyer_evaluation", "diagnostic_probe", "brand_control"}
+ALLOWED_OVERFIT_RISKS = {"low", "medium", "high"}
 
 
 def load_json(path, errors):
@@ -114,13 +132,19 @@ def main():
             errors.append(f"analyzed_responses row {index} content_gap_signals must be a list")
         if not isinstance(record.get("risk_signals", []), list):
             errors.append(f"analyzed_responses row {index} risk_signals must be a list")
+        if record.get("monitoring_role") not in ALLOWED_ROLES:
+            errors.append(f"analyzed_responses row {index} invalid monitoring_role: {record.get('monitoring_role')}")
+        if not isinstance(record.get("source_basis", []), list):
+            errors.append(f"analyzed_responses row {index} source_basis must be a list")
+        if record.get("overfit_risk") not in ALLOWED_OVERFIT_RISKS:
+            errors.append(f"analyzed_responses row {index} invalid overfit_risk: {record.get('overfit_risk')}")
 
     duplicates = [response_id for response_id, count in Counter(response_ids).items() if count > 1]
     if duplicates:
         errors.append(f"Duplicate response_id values: {', '.join(sorted(duplicates)[:10])}")
 
     if visibility:
-        for key in ["analysis_method", "scope", "client_brand", "brand_metrics", "rankings"]:
+        for key in ["analysis_method", "scope", "client_brand", "primary_kpis", "brand_metrics", "market_proxy_metrics", "rankings"]:
             if key not in visibility:
                 errors.append(f"visibility_analysis.json missing key: {key}")
         metrics = visibility.get("brand_metrics", [])
@@ -134,20 +158,34 @@ def main():
             if missing:
                 errors.append(f"brand metric for {metric.get('brand', '<unknown>')} missing fields: {', '.join(missing)}")
             validate_score(metric.get("visibility_score"), f"{metric.get('brand')} visibility_score", errors)
+            validate_score(metric.get("weighted_visibility_score"), f"{metric.get('brand')} weighted_visibility_score", errors)
             validate_score(metric.get("share_of_voice"), f"{metric.get('brand')} share_of_voice", errors)
+            validate_score(metric.get("weighted_share_of_voice"), f"{metric.get('brand')} weighted_share_of_voice", errors)
             validate_score(metric.get("top_3_rate"), f"{metric.get('brand')} top_3_rate", errors)
             validate_score(metric.get("sentiment_score"), f"{metric.get('brand')} sentiment_score", errors)
+            validate_score(metric.get("qualified_recommendation_rate"), f"{metric.get('brand')} qualified_recommendation_rate", errors)
         scope = visibility.get("scope", {})
         expected_analyzable = sum(1 for record in analyzed_records if record.get("is_analyzable"))
         if scope.get("analyzable_response_count") != expected_analyzable:
             errors.append("visibility scope analyzable_response_count does not match analyzed_responses.jsonl")
+        primary = visibility.get("primary_kpis", {})
+        for key in [
+            "market_visibility_score",
+            "weighted_market_visibility_score",
+            "market_share_of_voice",
+            "qualified_recommendation_rate",
+        ]:
+            if key not in primary:
+                errors.append(f"primary_kpis missing key: {key}")
+            else:
+                validate_score(primary.get(key), f"primary_kpis.{key}", errors)
 
     if topic_analysis:
         topics = topic_analysis.get("topics", [])
         if not isinstance(topics, list):
             errors.append("topic_analysis.json topics must be a list")
         for topic in topics:
-            for key in ["topic", "response_count", "client_visibility_score", "client_absent_rate", "topic_opportunity_level"]:
+            for key in ["topic", "response_count", "client_visibility_score", "market_weighted_visibility_score", "client_absent_rate", "topic_opportunity_level"]:
                 if key not in topic:
                     errors.append(f"topic entry missing key: {key}")
             if topic.get("topic_opportunity_level") not in {"high", "medium", "low"}:

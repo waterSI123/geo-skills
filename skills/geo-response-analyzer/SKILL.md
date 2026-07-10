@@ -1,6 +1,6 @@
 ---
 name: geo-response-analyzer
-description: Analyze cleaned ChatGPT GEO monitoring responses into structured brand visibility, share of voice, average rank, sentiment, topic-level opportunities, content gap signals, and risk signals. Use when the user has cleaned_responses.jsonl from geo-conversation-cleaner plus client_intake.json and prompt_set.json, and needs MVP rule-based GEO response analysis before report generation or content writing. This skill does not collect responses, clean raw answers, generate prompts, write client reports, or create optimization content.
+description: Analyze cleaned ChatGPT GEO monitoring responses into market-proxy-first brand visibility, weighted visibility, share of voice, average rank, recommendation quality, sentiment, topic-level opportunities, content gap signals, and risk signals. Use when the user has cleaned_responses.jsonl from geo-conversation-cleaner plus client_intake.json and prompt_set.json, and needs MVP rule-based GEO response analysis where primary KPIs use market_proxy and buyer_evaluation prompts while diagnostic_probe and brand_control prompts remain secondary context. This skill does not collect responses, clean raw answers, generate prompts, write client reports, or create optimization content.
 ---
 
 # GEO Response Analyzer
@@ -12,7 +12,7 @@ Convert cleaned ChatGPT monitoring answers into structured GEO visibility diagno
 This MVP analyzes ChatGPT-only cleaned responses and produces:
 
 - Overall brand metrics for the client and tracked competitors.
-- Rankings for visibility score, share of voice, average position, and sentiment score.
+- Rankings for market visibility, weighted visibility, share of voice, average position, qualified recommendation rate, and sentiment score.
 - Topic-level analysis for client absence, strong competitors, and weak recommendation signals.
 - Rule-based content gap and risk signals.
 - Machine-readable JSON/JSONL outputs plus a compact Markdown summary.
@@ -55,8 +55,9 @@ Use scripts for deterministic file work:
    - Emit content gap and risk signals with evidence snippets.
 
 4. Aggregate overall metrics.
-   - Calculate visibility score, share of voice, average position, top-3 rate, and sentiment score.
+   - Calculate visibility score, weighted visibility score, share of voice, weighted share of voice, average position, top-3 rate, qualified recommendation rate, and sentiment score.
    - Rank the client brand against tracked competitors for each metric.
+   - Keep primary KPIs scoped to `market_proxy` and `buyer_evaluation` prompts so diagnostic and brand-control prompts cannot inflate the main dashboard.
 
 5. Aggregate topic metrics.
    - Identify topics where the client brand is often absent.

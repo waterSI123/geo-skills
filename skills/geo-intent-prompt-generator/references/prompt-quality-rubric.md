@@ -10,6 +10,8 @@ Use this rubric before final output.
 - Could plausibly trigger an AI answer that lists, recommends, compares, cites, or explains brands.
 - Are relevant to the customer's service direction.
 - Are specific enough to be actionable but not so narrow that no answer is likely.
+- Represent a plausible market-proxy question from a buyer, user, evaluator, founder, marketer, or operator.
+- Can be backed by at least one `source_basis` item such as `buyer_question`, `customer_pain_point`, `sales_call_question`, `search_term`, `ad_keyword`, `competitor_context`, `website_research`, or `business_kpi`.
 
 ## Remove Or Rewrite Prompts That
 
@@ -21,6 +23,8 @@ Use this rubric before final output.
 - Are too generic for the business, such as `best AI tools`.
 - Make unsupported claims about the brand.
 - Are unnatural for the target market.
+- Are so vertical or artificial that they are likely to improve only the dashboard, not real buyer visibility.
+- Ask directly whether the monitored brand appears, is missing, or should be recommended.
 
 ## Practical Limits
 
@@ -28,6 +32,9 @@ Use this rubric before final output.
 - Use natural question or search phrasing.
 - Keep branded prompts realistic: review, comparison, pricing, alternatives, "is it good for X".
 - Keep unbranded prompts useful for monitoring category discovery and recommendation behavior.
+- Assign `prompt_realism_score` from `0` to `1`; use `0.8+` only for natural, common buyer questions.
+- Assign `overfit_risk`: `low` for broad realistic questions, `medium` for niche but plausible questions, and `high` for narrow diagnostic probes.
+- Main KPI prompts should usually have `monitoring_role` of `market_proxy` or `buyer_evaluation`.
 
 ## QA Report
 
@@ -37,6 +44,9 @@ Include:
 - Total prompts.
 - Brand distribution.
 - Intent distribution.
+- Monitoring role distribution.
+- Average prompt realism score.
+- Market-proxy demand weight share.
 - Localization notes.
 - Assumptions.
 - Website/source gaps.

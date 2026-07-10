@@ -29,6 +29,18 @@ REQUIRED_FIELDS = [
     "constraints",
 ]
 
+MARKET_PROXY_FIELDS = [
+    "actual_buyer_questions",
+    "customer_pain_points",
+    "buying_triggers",
+    "sales_call_questions",
+    "existing_search_terms",
+    "existing_ad_keywords",
+    "existing_customer_language",
+    "conversion_goals",
+    "business_kpis",
+]
+
 FIELD_KEYS = ["value", "status", "sources", "raw_evidence"]
 STATUSES = {"confirmed", "inferred", "missing", "conflicting"}
 CONFIDENCE = {"high", "medium", "low"}
@@ -67,7 +79,7 @@ def validate(data):
         errors.append("client_intake must be an object")
         intake = {}
 
-    for field in REQUIRED_FIELDS:
+    for field in REQUIRED_FIELDS + MARKET_PROXY_FIELDS:
         item = intake.get(field)
         if not isinstance(item, dict):
             errors.append(f"client_intake.{field} must be an object")
@@ -89,6 +101,16 @@ def validate(data):
                 warnings.append(f"client_intake.{field} references unknown source_id: {sid}")
         if field in CRITICAL_FIELDS and status == "missing":
             warnings.append(f"critical field missing: {field}")
+
+    demand_fields_with_value = [
+        field for field in MARKET_PROXY_FIELDS
+        if not is_empty_value(intake.get(field, {}).get("value"))
+    ]
+    if not demand_fields_with_value:
+        warnings.append(
+            "no market-proxy demand fields have values; prompt generation may rely on assumptions "
+            "instead of real customer language"
+        )
 
     confidence = data.get("confidence")
     if confidence not in CONFIDENCE:

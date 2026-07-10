@@ -1,7 +1,7 @@
 interface:
   display_name: "GEO Monitor Runner"
-  short_description: "Run ChatGPT GEO monitor sheets"
-  default_prompt: "Use $geo-monitor-runner to create a manual ChatGPT run sheet from my GEO prompt set, import completed responses, and validate raw monitoring data."
+  short_description: "Run market-proxy ChatGPT sheets"
+  default_prompt: "Use $geo-monitor-runner to create a manual ChatGPT run sheet from my market-proxy GEO prompt set, import completed responses, and validate raw monitoring data without losing prompt weights."
 
 policy:
   allow_implicit_invocation: true

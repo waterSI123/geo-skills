@@ -25,7 +25,18 @@ Return JSON-like structured Markdown or valid JSON when requested. Preserve thes
   "competitors": [],
   "website_domain": "",
   "brand_name": "",
-  "assumptions": []
+  "assumptions": [],
+  "market_proxy_inputs_used": {
+    "actual_buyer_questions": [],
+    "customer_pain_points": [],
+    "buying_triggers": [],
+    "sales_call_questions": [],
+    "existing_search_terms": [],
+    "existing_ad_keywords": [],
+    "existing_customer_language": [],
+    "conversion_goals": [],
+    "business_kpis": []
+  }
 }
 ```
 
@@ -88,6 +99,12 @@ Group prompts under their topic:
       "market": "",
       "language": "",
       "platform": "",
+      "monitoring_role": "market_proxy",
+      "prompt_realism_score": 0.9,
+      "demand_weight": 1.0,
+      "buyer_journey_stage": "evaluation",
+      "source_basis": ["customer_pain_point", "competitor_context"],
+      "overfit_risk": "low",
       "monitoring_goal": ""
     }
   ]
@@ -105,6 +122,29 @@ Allowed `intent_stage` values:
 - `commercial`
 - `transactional`
 
+Allowed `monitoring_role` values:
+
+- `market_proxy`: common real user or buyer question. Use for primary KPI measurement.
+- `buyer_evaluation`: realistic deeper evaluation, shortlist, implementation, or switching question. Use for primary KPI measurement with slightly lower demand weight.
+- `diagnostic_probe`: targeted probe for a suspected gap, risk, or content question. Do not use for primary KPI inflation.
+- `brand_control`: brand/entity verification question. Do not use for primary KPI inflation.
+
+Allowed `buyer_journey_stage` values:
+
+- `awareness`
+- `evaluation`
+- `selection`
+- `implementation`
+- `retention`
+
+Allowed `overfit_risk` values:
+
+- `low`
+- `medium`
+- `high`
+
+`prompt_realism_score` must be numeric from `0` to `1`. `demand_weight` must be numeric and greater than `0`.
+
 ## qa_report
 
 ```json
@@ -113,6 +153,9 @@ Allowed `intent_stage` values:
   "prompt_count": 0,
   "brand_distribution": {},
   "intent_distribution": {},
+  "monitoring_role_distribution": {},
+  "average_prompt_realism_score": 0.0,
+  "market_proxy_demand_weight_share": 0.0,
   "localization_notes": [],
   "assumptions": [],
   "source_gaps": [],

@@ -17,6 +17,7 @@ REQUIRED_ASSET_FIELDS = {
     "asset_type",
     "title",
     "target_topic",
+    "monitoring_role_focus",
     "draft_file",
     "recommended_url_slug",
     "status",

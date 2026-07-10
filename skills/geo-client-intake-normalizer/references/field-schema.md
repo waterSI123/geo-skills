@@ -97,6 +97,58 @@ Examples:
 - Do not mention pricing.
 - Use US English.
 
+## Market-Proxy Demand Fields
+
+These fields help downstream skills simulate realistic user and buyer questions. Always include them in final output. Use empty arrays when missing, and prefer exact customer language in `raw_evidence`.
+
+### actual_buyer_questions
+
+Questions real prospects, customers, sales leads, or users ask before buying or adopting the product.
+
+Examples: `Which AI ad creative tools work for ecommerce?`, `Can this follow our brand guidelines?`
+
+### customer_pain_points
+
+Problems, frustrations, jobs-to-be-done, objections, or workflow gaps the product addresses.
+
+Examples: `slow creative testing`, `brand consistency`, `ad policy review`, `high creative production cost`.
+
+### buying_triggers
+
+Events or situations that create demand.
+
+Examples: `scaling paid social`, `creative fatigue`, `launching new DTC product line`, `agency needs faster variants`.
+
+### sales_call_questions
+
+Questions asked in demos, sales calls, customer onboarding, support conversations, or founder/customer chats.
+
+Examples: `Does it support Meta and TikTok formats?`, `How do teams review generated creatives?`
+
+### existing_search_terms
+
+Search queries, SEO terms, internal keyword lists, or paid-search terms already used by the client or customers.
+
+### existing_ad_keywords
+
+Paid social/search ad keywords, campaign themes, creative hooks, or audience language already used by the client.
+
+### existing_customer_language
+
+Verbatim or near-verbatim phrases from reviews, testimonials, support, communities, sales notes, or uploaded customer materials.
+
+### conversion_goals
+
+Business actions the GEO work should support.
+
+Examples: `increase demo requests`, `drive trial signups`, `increase qualified leads`, `improve sales-call close rate`.
+
+### business_kpis
+
+Measurable business outcomes the client cares about.
+
+Examples: `organic AI referral traffic`, `demo requests`, `trial signups`, `pipeline`, `CAC`, `ROAS`, `new customers`.
+
 ## Critical Missing Fields
 
 Treat these as blocking for prompt generation when absent and not safely inferable:
@@ -105,3 +157,5 @@ Treat these as blocking for prompt generation when absent and not safely inferab
 - `target_countries_or_regions`
 - `languages`
 - `target_optimization_platforms`
+
+Treat absence of all market-proxy demand fields as non-blocking but important. Downstream prompt generation can proceed, but should warn that realism is based on assumptions rather than source-backed customer language.

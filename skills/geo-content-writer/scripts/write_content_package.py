@@ -236,6 +236,9 @@ def frontmatter(asset):
         f"content_id: \"{asset['content_id']}\"",
         f"asset_type: \"{asset['asset_type']}\"",
         f"target_topic: \"{asset['target_topic']}\"",
+        f"monitoring_role_focus: \"{asset.get('monitoring_role_focus', 'market_proxy')}\"",
+        f"market_weighted_visibility_score: \"{asset.get('market_weighted_visibility_score', '')}\"",
+        f"market_qualified_recommendation_rate: \"{asset.get('market_qualified_recommendation_rate', '')}\"",
         f"target_personas:{yaml_list(asset.get('target_personas', []))}",
         f"target_market: \"{asset.get('target_market', '')}\"",
         f"target_language: \"{asset.get('target_language', '')}\"",
@@ -257,7 +260,7 @@ def summary_lines(asset, client):
     direction = human_list(client.get("product_or_service_direction"), "its product category")
     return [
         f"{brand} is positioned for {topic} in the context of {direction}.",
-        f"This draft is written for {roles} and should help clarify how {brand} relates to the category, use cases, and decision criteria.",
+        f"This draft is written for {roles} and should help clarify how {brand} relates to the buyer topic cluster, use cases, and decision criteria.",
         f"Official website: {website}.",
     ]
 
@@ -342,6 +345,7 @@ def render_faq(asset, client):
 
 def geo_notes(asset, client):
     notes = [
+        f"- Optimize for the buyer topic cluster `{asset['target_topic']}`, not for one exact monitoring prompt.",
         f"- Keep the exact brand name `{client['brand_name']}` close to the target topic `{asset['target_topic']}`.",
         f"- Mention the official website `{client.get('website_domain') or 'n/a'}` consistently.",
         "- Keep FAQ answers short enough for AI systems to reuse directly.",
@@ -664,6 +668,11 @@ def make_asset(task, client, index):
         "asset_label": ASSET_LABELS.get(asset_type, asset_type),
         "title": title,
         "target_topic": topic.get("topic", ""),
+        "monitoring_role_focus": topic.get("monitoring_role_focus", "market_proxy"),
+        "market_response_count": topic.get("market_response_count", 0),
+        "market_client_visibility_score": topic.get("market_client_visibility_score"),
+        "market_weighted_visibility_score": topic.get("market_weighted_visibility_score"),
+        "market_qualified_recommendation_rate": topic.get("market_qualified_recommendation_rate"),
         "target_personas": clean_list(topic.get("target_personas") or client.get("target_customer_roles", [])),
         "target_market": first_or(client.get("target_countries_or_regions"), ""),
         "target_language": first_or(client.get("languages"), ""),

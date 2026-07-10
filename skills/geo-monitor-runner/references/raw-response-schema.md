@@ -20,6 +20,12 @@
   "persona": "",
   "brand_type": "",
   "intent_stage": "",
+  "monitoring_role": "market_proxy",
+  "prompt_realism_score": 0.9,
+  "demand_weight": 1.0,
+  "buyer_journey_stage": "evaluation",
+  "source_basis": ["customer_pain_point"],
+  "overfit_risk": "low",
   "run_mode": "manual_import",
   "run_status": "completed",
   "raw_answer": "",
@@ -40,4 +46,5 @@
 - Include failed and skipped rows so downstream QA can see coverage gaps.
 - Use unique `response_id` values within a file.
 - Keep prompt metadata attached to every record.
+- Keep market-proxy metadata attached to every record so primary KPI calculations can exclude or down-weight diagnostic prompts.
 - Use `ChatGPT` only in this MVP.

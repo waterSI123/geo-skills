@@ -1,7 +1,7 @@
 interface:
   display_name: "GEO Conversation Cleaner"
-  short_description: "Clean ChatGPT GEO responses"
-  default_prompt: "Use $geo-conversation-cleaner to clean raw ChatGPT GEO monitoring responses into analyzable cleaned_responses.jsonl and QA reports."
+  short_description: "Clean weighted GEO responses"
+  default_prompt: "Use $geo-conversation-cleaner to clean raw ChatGPT GEO monitoring responses into analyzable cleaned_responses.jsonl and QA reports while preserving market-proxy metadata."
 
 policy:
   allow_implicit_invocation: true

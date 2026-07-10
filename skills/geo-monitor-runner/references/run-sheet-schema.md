@@ -20,6 +20,12 @@ Required columns:
 - `persona`
 - `brand_type`
 - `intent_stage`
+- `monitoring_role`
+- `prompt_realism_score`
+- `demand_weight`
+- `buyer_journey_stage`
+- `source_basis`
+- `overfit_risk`
 - `run_mode`
 - `model_or_surface`
 - `account_context`
@@ -56,6 +62,7 @@ The human operator usually fills:
 ## Rules
 
 - Keep the original prompt unchanged.
+- Do not remove or edit market-proxy metadata columns; downstream analyzer uses them for primary KPI weighting.
 - Use `ChatGPT` as the only supported platform.
 - Preserve raw ChatGPT answers exactly as copied.
 - Use one row per prompt per run iteration.

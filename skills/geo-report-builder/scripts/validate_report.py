@@ -15,7 +15,7 @@ REQUIRED_FILES = [
 REQUIRED_SECTIONS = [
     "## Executive Summary",
     "## Project Scope",
-    "## Overall GEO Visibility Scorecard",
+    "## Market-Proxy GEO Visibility Scorecard",
     "## Competitor Comparison",
     "## Topic-Level Diagnosis",
     "## Content Gap Findings",
@@ -24,9 +24,11 @@ REQUIRED_SECTIONS = [
 ]
 
 REQUIRED_METRICS = [
-    "Visibility Score",
-    "Share Of Voice",
-    "Average Position",
+    "Market Visibility Score",
+    "Weighted Market Visibility Score",
+    "Market Share Of Voice",
+    "Market Average Position",
+    "Qualified Recommendation Rate",
     "Sentiment Score",
 ]
 
@@ -78,6 +80,7 @@ def main():
             "scope",
             "executive_summary",
             "scorecard",
+            "market_proxy_scorecard",
             "competitor_comparison",
             "topic_diagnosis",
             "content_gap_findings",

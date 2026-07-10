@@ -20,6 +20,12 @@ Expected fields:
 - `persona`
 - `brand_type`
 - `intent_stage`
+- `monitoring_role`
+- `prompt_realism_score`
+- `demand_weight`
+- `buyer_journey_stage`
+- `source_basis`
+- `overfit_risk`
 - `run_mode`
 - `run_status`
 - `raw_answer`
@@ -32,7 +38,7 @@ Expected fields:
 - `source_row`
 - `notes`
 
-Missing optional fields should be filled with empty strings. Missing critical fields should be flagged in validation, not guessed.
+Missing optional fields should be filled with empty strings. Missing market-proxy metadata should be filled with safe defaults and flagged by upstream validation when possible. Missing critical fields should be flagged in validation, not guessed.
 
 ## Optional Inputs
 

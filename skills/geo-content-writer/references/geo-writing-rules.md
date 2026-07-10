@@ -10,6 +10,7 @@ Write content for AI retrievability, entity clarity, and recommendation readines
 - Make the official website/domain explicit.
 - Put the brand into relevant comparison and category contexts.
 - Include FAQ answers that are short, direct, and reusable by AI systems.
+- Write for realistic buyer topic clusters, not for a single exact monitoring prompt.
 
 ## Writing Style
 
@@ -19,6 +20,7 @@ Write content for AI retrievability, entity clarity, and recommendation readines
 - Avoid exaggerated claims.
 - Avoid attacks on competitors.
 - Use "may", "can help", and "is designed for" when evidence is limited.
+- Avoid prompt-shaped copy that reads like it was created only to move a dashboard metric.
 
 ## Required Mentions
 

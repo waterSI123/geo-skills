@@ -15,7 +15,8 @@ Use consultative client-facing language.
 Use sample-aware phrasing:
 
 ```text
-In this monitoring sample...
+In market-proxy prompts...
+In this market-proxy monitoring sample...
 ChatGPT responses showed...
 Among tracked brands...
 ```
@@ -35,6 +36,11 @@ Visibility score:
 - High: client is consistently surfaced when brands are mentioned.
 - Medium: client appears, but not reliably.
 - Low: client is frequently absent from brand recommendations.
+
+Weighted market visibility:
+
+- Higher weighted visibility means the client appears in prompts with stronger realism and demand weight.
+- Low weighted visibility is more important than a cosmetic gain in diagnostic prompts.
 
 Share of voice:
 

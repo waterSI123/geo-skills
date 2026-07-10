@@ -10,6 +10,8 @@ from pathlib import Path
 
 
 ALLOWED_STATUSES = {"pending", "completed", "failed", "skipped", "needs_retry"}
+ALLOWED_ROLES = {"market_proxy", "buyer_evaluation", "diagnostic_probe", "brand_control"}
+ALLOWED_OVERFIT_RISKS = {"low", "medium", "high"}
 
 
 def load_json(path):
@@ -29,6 +31,41 @@ def normalize_platform(value):
     if lowered == "chatgpt":
         return "ChatGPT"
     raise ValueError(f"Only ChatGPT is supported by this MVP, got: {raw}")
+
+
+def normalize_role(value):
+    role = (value or "market_proxy").strip().lower()
+    return role if role in ALLOWED_ROLES else "market_proxy"
+
+
+def normalize_overfit_risk(value):
+    risk = (value or "medium").strip().lower()
+    return risk if risk in ALLOWED_OVERFIT_RISKS else "medium"
+
+
+def parse_float(value, default):
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def parse_source_basis(value):
+    if value is None:
+        return []
+    if isinstance(value, list):
+        return [str(item).strip() for item in value if str(item).strip()]
+    text = str(value).strip()
+    if not text:
+        return []
+    if text.startswith("["):
+        try:
+            parsed = json.loads(text)
+            if isinstance(parsed, list):
+                return [str(item).strip() for item in parsed if str(item).strip()]
+        except json.JSONDecodeError:
+            pass
+    return [item.strip() for item in text.split(";") if item.strip()]
 
 
 def make_record(row, source_row):
@@ -53,6 +90,12 @@ def make_record(row, source_row):
         "persona": row.get("persona") or "",
         "brand_type": row.get("brand_type") or "",
         "intent_stage": row.get("intent_stage") or "",
+        "monitoring_role": normalize_role(row.get("monitoring_role")),
+        "prompt_realism_score": parse_float(row.get("prompt_realism_score"), 0.7),
+        "demand_weight": parse_float(row.get("demand_weight"), 1.0),
+        "buyer_journey_stage": row.get("buyer_journey_stage") or "",
+        "source_basis": parse_source_basis(row.get("source_basis")),
+        "overfit_risk": normalize_overfit_risk(row.get("overfit_risk")),
         "run_mode": "manual_import",
         "run_status": normalize_status(row.get("run_status")),
         "raw_answer": row.get("raw_answer") or "",

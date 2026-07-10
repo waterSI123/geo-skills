@@ -13,6 +13,15 @@ from urllib.parse import urlparse
 
 ANALYSIS_METHOD = "rule_based_v1"
 SUPPORTED_PLATFORM = "ChatGPT"
+MONITORING_ROLES = {"market_proxy", "buyer_evaluation", "diagnostic_probe", "brand_control"}
+MARKET_PROXY_ROLES = {"market_proxy", "buyer_evaluation"}
+ROLE_DEFAULT_DEMAND_WEIGHTS = {
+    "market_proxy": 1.0,
+    "buyer_evaluation": 0.75,
+    "diagnostic_probe": 0.35,
+    "brand_control": 0.25,
+}
+OVERFIT_RISKS = {"low", "medium", "high"}
 
 RECOMMENDATION_KEYWORDS = [
     "recommend",
@@ -210,6 +219,66 @@ def as_list(value):
         value = value.strip()
         return [value] if value else []
     return [value]
+
+
+def coerce_float(value, default):
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def normalize_monitoring_role(value):
+    role = (value or "market_proxy").strip().lower()
+    return role if role in MONITORING_ROLES else "market_proxy"
+
+
+def normalize_overfit_risk(value):
+    risk = (value or "medium").strip().lower()
+    return risk if risk in OVERFIT_RISKS else "medium"
+
+
+def normalize_source_basis(value):
+    if value is None:
+        return []
+    if isinstance(value, list):
+        return [str(item).strip() for item in value if str(item).strip()]
+    text = str(value).strip()
+    if not text:
+        return []
+    if text.startswith("["):
+        try:
+            parsed = json.loads(text)
+            if isinstance(parsed, list):
+                return [str(item).strip() for item in parsed if str(item).strip()]
+        except json.JSONDecodeError:
+            pass
+    return [item.strip() for item in text.split(";") if item.strip()]
+
+
+def normalize_prompt_metadata(record):
+    role = normalize_monitoring_role(record.get("monitoring_role"))
+    realism = min(1.0, max(0.0, coerce_float(record.get("prompt_realism_score"), 0.7)))
+    demand_weight = coerce_float(record.get("demand_weight"), ROLE_DEFAULT_DEMAND_WEIGHTS.get(role, 1.0))
+    if demand_weight <= 0:
+        demand_weight = ROLE_DEFAULT_DEMAND_WEIGHTS.get(role, 1.0)
+    return {
+        "monitoring_role": role,
+        "prompt_realism_score": realism,
+        "demand_weight": demand_weight,
+        "buyer_journey_stage": str(record.get("buyer_journey_stage") or "").strip(),
+        "source_basis": normalize_source_basis(record.get("source_basis")),
+        "overfit_risk": normalize_overfit_risk(record.get("overfit_risk")),
+    }
+
+
+def effective_weight(record):
+    metadata = normalize_prompt_metadata(record)
+    return max(0.0, metadata["demand_weight"] * metadata["prompt_realism_score"])
+
+
+def is_market_proxy_record(record):
+    return normalize_monitoring_role(record.get("monitoring_role")) in MARKET_PROXY_ROLES
 
 
 def intake_field(intake, field_name, default=None):
@@ -510,7 +579,11 @@ def analyze_signals(text, client_brand, client_entry, competitor_entries, websit
 
     official_domain = normalize_domain(website_domain)
     if client_mentioned and official_domain:
-        nearby_domains = [domain for domain in find_domains(client_context) if domain != official_domain]
+        competitor_domains = {normalize_domain(entry["brand"]) for entry in competitor_entries if normalize_domain(entry["brand"])}
+        nearby_domains = [
+            domain for domain in find_domains(client_context)
+            if domain != official_domain and domain not in competitor_domains
+        ]
         if nearby_domains and official_domain not in find_domains(client_context):
             risks.append(signal("wrong_website", "high", f"Domain(s) near {client_brand}: {', '.join(nearby_domains)}. Official domain: {official_domain}."))
 
@@ -554,9 +627,26 @@ def merge_response_metadata(record, prompt_lookup):
     prompt_id = str(record.get("prompt_id", "")).strip()
     prompt_meta = prompt_lookup.get(prompt_id, {})
     merged = dict(record)
-    for key in ["topic_id", "topic", "persona", "market", "language", "brand_type", "intent_stage", "platform", "prompt"]:
+    for key in [
+        "topic_id",
+        "topic",
+        "persona",
+        "market",
+        "language",
+        "brand_type",
+        "intent_stage",
+        "monitoring_role",
+        "prompt_realism_score",
+        "demand_weight",
+        "buyer_journey_stage",
+        "source_basis",
+        "overfit_risk",
+        "platform",
+        "prompt",
+    ]:
         if not merged.get(key) and prompt_meta.get(key):
             merged[key] = prompt_meta.get(key)
+    merged.update(normalize_prompt_metadata(merged))
     return merged
 
 
@@ -595,6 +685,13 @@ def analyze_record(record, tracked_brands, client_brand, competitors, website_do
         "language": merged.get("language", ""),
         "brand_type": merged.get("brand_type", ""),
         "intent_stage": merged.get("intent_stage", ""),
+        "monitoring_role": merged.get("monitoring_role", "market_proxy"),
+        "prompt_realism_score": merged.get("prompt_realism_score", 0.7),
+        "demand_weight": merged.get("demand_weight", 1.0),
+        "effective_demand_weight": effective_weight(merged),
+        "buyer_journey_stage": merged.get("buyer_journey_stage", ""),
+        "source_basis": merged.get("source_basis", []),
+        "overfit_risk": merged.get("overfit_risk", "medium"),
         "platform": merged.get("platform", SUPPORTED_PLATFORM),
         "is_analyzable": is_analyzable,
         "analysis_method": ANALYSIS_METHOD,
@@ -713,6 +810,12 @@ def compute_brand_metrics(analysis_records, tracked_brands):
     ]
     brand_mentioning_denominator = len(brand_mentioning_records)
     total_mentions = sum(entry.get("mention_count", 0) for record in analyzable_records for entry in record.get("brands_detected", []))
+    brand_mentioning_weight_denominator = sum(effective_weight(record) for record in brand_mentioning_records)
+    total_weighted_mentions = sum(
+        entry.get("mention_count", 0) * effective_weight(record)
+        for record in analyzable_records
+        for entry in record.get("brands_detected", [])
+    )
     entries_by_brand = collect_brand_entries(analysis_records, tracked_brands)
     metrics = []
 
@@ -730,20 +833,53 @@ def compute_brand_metrics(analysis_records, tracked_brands):
         negative = sum(1 for entry in mentioned_entries if entry.get("sentiment") == "negative")
         mixed = sum(1 for entry in mentioned_entries if entry.get("sentiment") == "mixed")
         uncertain = sum(1 for entry in mentioned_entries if entry.get("sentiment") == "uncertain")
+        weighted_responses_mentioned = 0.0
+        weighted_mentions = 0.0
+        weighted_position_sum = 0.0
+        weighted_position_denominator = 0.0
+        qualified_recommendation_weight = 0.0
+        mentioned_weight_denominator = 0.0
+
+        for record in analyzable_records:
+            weight = effective_weight(record)
+            entry = next((candidate for candidate in record.get("brands_detected", []) if candidate.get("brand") == brand), None)
+            if not entry or entry.get("mention_count", 0) <= 0:
+                continue
+            weighted_responses_mentioned += weight
+            weighted_mentions += entry.get("mention_count", 0) * weight
+            mentioned_weight_denominator += weight
+            if entry.get("first_position") is not None:
+                weighted_position_sum += entry["first_position"] * weight
+                weighted_position_denominator += weight
+            if entry.get("mention_type") == "recommended" and entry.get("sentiment") in {"positive", "neutral"}:
+                qualified_recommendation_weight += weight
+
         metric = {
             "brand": brand,
             "role": item["role"],
             "responses_mentioned": responses_mentioned,
             "visibility_score": round_or_none(responses_mentioned / brand_mentioning_denominator if brand_mentioning_denominator else 0.0),
             "visibility_rank": None,
+            "weighted_responses_mentioned": round_or_none(weighted_responses_mentioned),
+            "weighted_visibility_score": round_or_none(weighted_responses_mentioned / brand_mentioning_weight_denominator if brand_mentioning_weight_denominator else 0.0),
+            "weighted_visibility_rank": None,
             "mention_occurrences": mention_occurrences,
             "share_of_voice": round_or_none(mention_occurrences / total_mentions if total_mentions else 0.0),
             "share_of_voice_rank": None,
+            "weighted_mention_occurrences": round_or_none(weighted_mentions),
+            "weighted_share_of_voice": round_or_none(weighted_mentions / total_weighted_mentions if total_weighted_mentions else 0.0),
+            "weighted_share_of_voice_rank": None,
             "average_position": round_or_none(sum(positions) / len(positions) if positions else None),
             "average_position_rank": None,
+            "weighted_average_position": round_or_none(weighted_position_sum / weighted_position_denominator if weighted_position_denominator else None),
+            "weighted_average_position_rank": None,
             "top_3_rate": round_or_none(sum(1 for position in positions if position <= 3) / brand_mentioning_denominator if brand_mentioning_denominator else 0.0),
             "sentiment_score": round_or_none(sum(sentiment_values) / len(sentiment_values) if sentiment_values else None),
             "sentiment_rank": None,
+            "qualified_recommendation_rate": round_or_none(
+                qualified_recommendation_weight / mentioned_weight_denominator if mentioned_weight_denominator else 0.0
+            ),
+            "qualified_recommendation_rank": None,
             "positive_mentions": positive,
             "neutral_mentions": neutral,
             "negative_mentions": negative,
@@ -754,10 +890,14 @@ def compute_brand_metrics(analysis_records, tracked_brands):
         metrics.append(metric)
 
     rank_metric(metrics, "visibility_score", "visibility_rank", descending=True)
+    rank_metric(metrics, "weighted_visibility_score", "weighted_visibility_rank", descending=True)
     rank_metric(metrics, "share_of_voice", "share_of_voice_rank", descending=True)
+    rank_metric(metrics, "weighted_share_of_voice", "weighted_share_of_voice_rank", descending=True)
     rank_metric(metrics, "average_position", "average_position_rank", descending=False)
+    rank_metric(metrics, "weighted_average_position", "weighted_average_position_rank", descending=False)
     rank_metric(metrics, "sentiment_score", "sentiment_rank", descending=True)
-    return metrics, analyzable_records, brand_mentioning_records, total_mentions
+    rank_metric(metrics, "qualified_recommendation_rate", "qualified_recommendation_rank", descending=True)
+    return metrics, analyzable_records, brand_mentioning_records, total_mentions, total_weighted_mentions
 
 
 def ranking_list(metrics, key, rank_key):
@@ -772,8 +912,61 @@ def ranking_list(metrics, key, rank_key):
     ]
 
 
+def role_breakdown(records):
+    counts = Counter()
+    analyzable_counts = Counter()
+    weight_totals = Counter()
+    for record in records:
+        role = normalize_monitoring_role(record.get("monitoring_role"))
+        counts[role] += 1
+        if record.get("is_analyzable"):
+            analyzable_counts[role] += 1
+            weight_totals[role] += effective_weight(record)
+    return {
+        role: {
+            "records": counts.get(role, 0),
+            "analyzable_records": analyzable_counts.get(role, 0),
+            "effective_demand_weight": round_or_none(weight_totals.get(role, 0.0)),
+        }
+        for role in sorted(MONITORING_ROLES)
+        if counts.get(role, 0) or analyzable_counts.get(role, 0)
+    }
+
+
+def client_metric_from(metrics, client_brand):
+    return next((item for item in metrics if item["brand"] == client_brand), None)
+
+
+def build_primary_kpis(market_metrics, client_brand):
+    client = client_metric_from(market_metrics, client_brand)
+    if not client:
+        return {}
+    return {
+        "client_brand": client_brand,
+        "primary_scope": "market_proxy_and_buyer_evaluation",
+        "market_visibility_score": client.get("visibility_score"),
+        "market_visibility_rank": client.get("visibility_rank"),
+        "weighted_market_visibility_score": client.get("weighted_visibility_score"),
+        "weighted_market_visibility_rank": client.get("weighted_visibility_rank"),
+        "market_share_of_voice": client.get("share_of_voice"),
+        "market_share_of_voice_rank": client.get("share_of_voice_rank"),
+        "weighted_market_share_of_voice": client.get("weighted_share_of_voice"),
+        "weighted_market_share_of_voice_rank": client.get("weighted_share_of_voice_rank"),
+        "market_average_position": client.get("average_position"),
+        "market_average_position_rank": client.get("average_position_rank"),
+        "weighted_market_average_position": client.get("weighted_average_position"),
+        "weighted_market_average_position_rank": client.get("weighted_average_position_rank"),
+        "qualified_recommendation_rate": client.get("qualified_recommendation_rate"),
+        "qualified_recommendation_rank": client.get("qualified_recommendation_rank"),
+        "market_sentiment_score": client.get("sentiment_score"),
+        "market_sentiment_rank": client.get("sentiment_rank"),
+    }
+
+
 def build_visibility_analysis(analysis_records, tracked_brands, client_brand, input_files):
-    metrics, analyzable_records, brand_mentioning_records, total_mentions = compute_brand_metrics(analysis_records, tracked_brands)
+    metrics, analyzable_records, brand_mentioning_records, total_mentions, total_weighted_mentions = compute_brand_metrics(analysis_records, tracked_brands)
+    market_records = [record for record in analysis_records if is_market_proxy_record(record)]
+    market_metrics, market_analyzable_records, market_brand_mentioning_records, market_total_mentions, market_weighted_mentions = compute_brand_metrics(market_records, tracked_brands)
     return {
         "analysis_method": ANALYSIS_METHOD,
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -783,15 +976,30 @@ def build_visibility_analysis(analysis_records, tracked_brands, client_brand, in
             "analyzable_response_count": len(analyzable_records),
             "brand_mentioning_response_count": len(brand_mentioning_records),
             "total_tracked_brand_mentions": total_mentions,
+            "total_weighted_tracked_brand_mentions": round_or_none(total_weighted_mentions),
+            "monitoring_role_breakdown": role_breakdown(analysis_records),
+            "primary_kpi_scope": "market_proxy_and_buyer_evaluation",
+            "market_proxy_response_count": len(market_analyzable_records),
+            "market_proxy_brand_mentioning_response_count": len(market_brand_mentioning_records),
+            "market_proxy_total_tracked_brand_mentions": market_total_mentions,
+            "market_proxy_total_weighted_tracked_brand_mentions": round_or_none(market_weighted_mentions),
             "tracked_brands": [{"brand": item["brand"], "role": item["role"]} for item in tracked_brands],
         },
         "client_brand": client_brand,
+        "primary_kpis": build_primary_kpis(market_metrics, client_brand),
         "brand_metrics": metrics,
+        "market_proxy_metrics": market_metrics,
         "rankings": {
             "visibility": ranking_list(metrics, "visibility_score", "visibility_rank"),
+            "weighted_visibility": ranking_list(metrics, "weighted_visibility_score", "weighted_visibility_rank"),
             "share_of_voice": ranking_list(metrics, "share_of_voice", "share_of_voice_rank"),
+            "weighted_share_of_voice": ranking_list(metrics, "weighted_share_of_voice", "weighted_share_of_voice_rank"),
             "average_position": ranking_list(metrics, "average_position", "average_position_rank"),
+            "weighted_average_position": ranking_list(metrics, "weighted_average_position", "weighted_average_position_rank"),
             "sentiment": ranking_list(metrics, "sentiment_score", "sentiment_rank"),
+            "qualified_recommendation": ranking_list(metrics, "qualified_recommendation_rate", "qualified_recommendation_rank"),
+            "market_proxy_visibility": ranking_list(market_metrics, "visibility_score", "visibility_rank"),
+            "market_proxy_weighted_visibility": ranking_list(market_metrics, "weighted_visibility_score", "weighted_visibility_rank"),
         },
     }
 
@@ -821,39 +1029,49 @@ def build_topic_analysis(analysis_records, tracked_brands, client_brand):
     topics = []
     for _key, records in grouped.items():
         sample = records[0]
-        metrics, analyzable_records, brand_mentioning_records, _total_mentions = compute_brand_metrics(records, tracked_brands)
+        metrics, analyzable_records, brand_mentioning_records, _total_mentions, _weighted_mentions = compute_brand_metrics(records, tracked_brands)
+        market_records = [record for record in records if is_market_proxy_record(record)]
+        if market_records:
+            opportunity_records = market_records
+        else:
+            opportunity_records = records
+        market_metrics, market_analyzable_records, market_brand_mentioning_records, _market_mentions, _market_weighted_mentions = compute_brand_metrics(opportunity_records, tracked_brands)
         metric_by_brand = {item["brand"]: item for item in metrics}
+        market_metric_by_brand = {item["brand"]: item for item in market_metrics}
         client_metric = metric_by_brand[client_brand]
-        brand_denominator = len(brand_mentioning_records) or len(analyzable_records)
-        client_mentioned_records = [record for record in records if record.get("client_brand_mentioned")]
+        market_client_metric = market_metric_by_brand.get(client_brand, client_metric)
+        brand_denominator = len(market_brand_mentioning_records) or len(market_analyzable_records)
+        client_mentioned_records = [record for record in opportunity_records if record.get("client_brand_mentioned")]
         weak_client_records = [
             record for record in client_mentioned_records
             if record.get("client_brand_mention_type") != "recommended" or record.get("client_brand_sentiment") != "positive"
         ]
-        client_absent_count = sum(1 for record in (brand_mentioning_records or analyzable_records) if not record.get("client_brand_mentioned"))
+        client_absent_count = sum(1 for record in (market_brand_mentioning_records or market_analyzable_records) if not record.get("client_brand_mentioned"))
         client_absent_rate = client_absent_count / brand_denominator if brand_denominator else 0.0
         weak_rate = len(weak_client_records) / len(client_mentioned_records) if client_mentioned_records else 0.0
 
         strong_competitors = []
-        for metric in metrics:
+        for metric in market_metrics:
             if metric["role"] != "competitor":
                 continue
             stronger = False
-            if metric["visibility_score"] > client_metric["visibility_score"]:
+            if metric["weighted_visibility_score"] > market_client_metric["weighted_visibility_score"]:
                 stronger = True
-            if metric["share_of_voice"] > client_metric["share_of_voice"]:
+            if metric["weighted_share_of_voice"] > market_client_metric["weighted_share_of_voice"]:
                 stronger = True
-            if client_metric["average_position"] is None and metric["average_position"] is not None:
+            if market_client_metric["average_position"] is None and metric["average_position"] is not None:
                 stronger = True
-            elif metric["average_position"] is not None and client_metric["average_position"] is not None and metric["average_position"] < client_metric["average_position"]:
+            elif metric["average_position"] is not None and market_client_metric["average_position"] is not None and metric["average_position"] < market_client_metric["average_position"]:
                 stronger = True
-            if metric["sentiment_score"] is not None and (client_metric["sentiment_score"] is None or metric["sentiment_score"] > client_metric["sentiment_score"]):
+            if metric["sentiment_score"] is not None and (market_client_metric["sentiment_score"] is None or metric["sentiment_score"] > market_client_metric["sentiment_score"]):
                 stronger = True
             if stronger:
                 strong_competitors.append({
                     "brand": metric["brand"],
                     "visibility_score": metric["visibility_score"],
+                    "weighted_visibility_score": metric["weighted_visibility_score"],
                     "share_of_voice": metric["share_of_voice"],
+                    "weighted_share_of_voice": metric["weighted_share_of_voice"],
                     "average_position": metric["average_position"],
                     "sentiment_score": metric["sentiment_score"],
                 })
@@ -874,13 +1092,22 @@ def build_topic_analysis(analysis_records, tracked_brands, client_brand):
             "topic": sample.get("topic", "") or sample.get("prompt_id", ""),
             "response_count": len(analyzable_records),
             "brand_mentioning_response_count": len(brand_mentioning_records),
+            "market_response_count": len(market_analyzable_records),
+            "market_brand_mentioning_response_count": len(market_brand_mentioning_records),
+            "monitoring_role_counts": dict(Counter(normalize_monitoring_role(record.get("monitoring_role")) for record in records)),
             "client_visibility_score": client_metric["visibility_score"],
             "client_share_of_voice": client_metric["share_of_voice"],
             "client_average_position": client_metric["average_position"],
             "client_sentiment_score": client_metric["sentiment_score"],
+            "market_client_visibility_score": market_client_metric["visibility_score"],
+            "market_weighted_visibility_score": market_client_metric["weighted_visibility_score"],
+            "market_client_share_of_voice": market_client_metric["share_of_voice"],
+            "market_weighted_share_of_voice": market_client_metric["weighted_share_of_voice"],
+            "market_client_average_position": market_client_metric["average_position"],
+            "market_qualified_recommendation_rate": market_client_metric["qualified_recommendation_rate"],
             "client_absent_rate": round_or_none(client_absent_rate),
             "weak_recommendation_rate": round_or_none(weak_rate),
-            "strong_competitors": sorted(strong_competitors, key=lambda item: (-item["visibility_score"], -item["share_of_voice"], item["brand"].lower())),
+            "strong_competitors": sorted(strong_competitors, key=lambda item: (-(item["weighted_visibility_score"] or 0), -(item["weighted_share_of_voice"] or 0), item["brand"].lower())),
             "content_gap_counts": gap_counts,
             "risk_signal_counts": risk_counts,
             "topic_opportunity_level": level,
@@ -929,6 +1156,7 @@ def build_opportunity_findings(analysis_records):
                     "topic": record.get("topic", ""),
                     "response_ids": [],
                     "evidence": [],
+                    "monitoring_roles": Counter(),
                     "review_required": False,
                 })
                 if item.get("severity") == "high":
@@ -937,6 +1165,7 @@ def build_opportunity_findings(analysis_records):
                     bucket["response_ids"].append(record["response_id"])
                 if item.get("evidence"):
                     bucket["evidence"].append(item["evidence"])
+                bucket["monitoring_roles"][normalize_monitoring_role(record.get("monitoring_role"))] += 1
                 bucket["review_required"] = bucket["review_required"] or bool(item.get("review_required"))
 
     findings = []
@@ -950,6 +1179,8 @@ def build_opportunity_findings(analysis_records):
             "topic_id": bucket["topic_id"],
             "topic": bucket["topic"],
             "response_count": len(set(bucket["response_ids"])),
+            "monitoring_role_counts": dict(bucket["monitoring_roles"]),
+            "market_proxy_response_count": sum(count for role, count in bucket["monitoring_roles"].items() if role in MARKET_PROXY_ROLES),
             "evidence_response_ids": sorted(set(bucket["response_ids"]))[:8],
             "evidence_examples": bucket["evidence"][:3],
             "review_required": bucket["review_required"],
@@ -976,6 +1207,7 @@ def format_percent(value):
 def build_summary(visibility, topic_analysis, opportunities):
     client_brand = visibility["client_brand"]
     client_metric = next((item for item in visibility["brand_metrics"] if item["brand"] == client_brand), None)
+    primary = visibility.get("primary_kpis", {})
     lines = [
         "# GEO Response Analysis Summary",
         "",
@@ -988,10 +1220,11 @@ def build_summary(visibility, topic_analysis, opportunities):
     ]
     if client_metric:
         lines.extend([
-            f"- Visibility Score: {format_percent(client_metric['visibility_score'])} (rank {client_metric['visibility_rank']})",
-            f"- Share Of Voice: {format_percent(client_metric['share_of_voice'])} (rank {client_metric['share_of_voice_rank']})",
-            f"- Average Position: {client_metric['average_position'] if client_metric['average_position'] is not None else 'n/a'} (rank {client_metric['average_position_rank']})",
-            f"- Sentiment Score: {client_metric['sentiment_score'] if client_metric['sentiment_score'] is not None else 'n/a'} (rank {client_metric['sentiment_rank']})",
+            f"- Market Visibility Score: {format_percent(primary.get('market_visibility_score'))} (rank {primary.get('market_visibility_rank')})",
+            f"- Weighted Market Visibility Score: {format_percent(primary.get('weighted_market_visibility_score'))} (rank {primary.get('weighted_market_visibility_rank')})",
+            f"- Market Share Of Voice: {format_percent(primary.get('market_share_of_voice'))} (rank {primary.get('market_share_of_voice_rank')})",
+            f"- Market Average Position: {primary.get('market_average_position') if primary.get('market_average_position') is not None else 'n/a'} (rank {primary.get('market_average_position_rank')})",
+            f"- Qualified Recommendation Rate: {format_percent(primary.get('qualified_recommendation_rate'))} (rank {primary.get('qualified_recommendation_rank')})",
         ])
     lines.extend(["", "## Highest Opportunity Topics", ""])
     high_topics = [topic for topic in topic_analysis["topics"] if topic["topic_opportunity_level"] in {"high", "medium"}][:8]

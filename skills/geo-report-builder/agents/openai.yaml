@@ -1,7 +1,7 @@
 interface:
   display_name: "GEO Report Builder"
-  short_description: "Build GEO diagnostic reports"
-  default_prompt: "Use $geo-report-builder to turn GEO response analysis outputs into a client-facing diagnostic report and content-writer brief."
+  short_description: "Build market-proxy GEO reports"
+  default_prompt: "Use $geo-report-builder to turn GEO response analysis outputs into a market-proxy client diagnostic report and content-writer brief."
 
 policy:
   allow_implicit_invocation: true

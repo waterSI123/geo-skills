@@ -78,7 +78,13 @@ Accept `geo-intent-prompt-generator` output:
           "persona": "ecommerce marketer",
           "market": "US",
           "language": "English",
-          "platform": "ChatGPT"
+          "platform": "ChatGPT",
+          "monitoring_role": "market_proxy",
+          "prompt_realism_score": 0.9,
+          "demand_weight": 1.0,
+          "buyer_journey_stage": "evaluation",
+          "source_basis": ["customer_pain_point"],
+          "overfit_risk": "low"
         }
       ]
     }
@@ -86,7 +92,7 @@ Accept `geo-intent-prompt-generator` output:
 }
 ```
 
-Use `prompt_id` to attach topic, persona, market, language, brand type, and intent stage to each response. If prompt metadata is missing, fall back to fields already present in the cleaned response record.
+Use `prompt_id` to attach topic, persona, market, language, brand type, intent stage, monitoring role, realism score, demand weight, buyer journey, source basis, and overfit risk to each response. If prompt metadata is missing, fall back to fields already present in the cleaned response record.
 
 ## cleaned_responses.jsonl
 
@@ -102,6 +108,12 @@ One JSON object per cleaned response:
   "persona": "ecommerce marketer",
   "brand_type": "unbranded",
   "intent_stage": "commercial",
+  "monitoring_role": "market_proxy",
+  "prompt_realism_score": 0.9,
+  "demand_weight": 1.0,
+  "buyer_journey_stage": "evaluation",
+  "source_basis": ["customer_pain_point"],
+  "overfit_risk": "low",
   "clean_answer": "...",
   "raw_answer": "...",
   "is_analyzable": true,

@@ -2,6 +2,8 @@
 
 All MVP metrics are calculated over analyzable ChatGPT responses only.
 
+Primary KPI metrics are calculated over `market_proxy` and `buyer_evaluation` prompts only. `diagnostic_probe` and `brand_control` prompts can appear in supporting analysis, but must not inflate primary market performance.
+
 ## Tracked Brands
 
 Tracked brands are:
@@ -30,6 +32,24 @@ Example: 100 responses mention at least one tracked brand. The client brand appe
 
 Rank brands by visibility score descending.
 
+## Weighted Market Visibility Score
+
+Definition:
+
+```text
+sum(effective_demand_weight for market-proxy responses where brand appears)
+/
+sum(effective_demand_weight for market-proxy responses mentioning any tracked brand)
+```
+
+Where:
+
+```text
+effective_demand_weight = demand_weight * prompt_realism_score
+```
+
+Use this as the preferred dashboard KPI because it discounts low-realism or low-demand prompts.
+
 ## Share Of Voice
 
 Definition:
@@ -41,6 +61,18 @@ brand mention occurrences / all tracked brand mention occurrences
 Example: tracked brands are mentioned 500 total times. The client brand is mentioned 50 times. Share of voice is `10%`.
 
 Rank brands by share of voice descending.
+
+## Weighted Share Of Voice
+
+Definition:
+
+```text
+sum(brand mention occurrences * effective_demand_weight)
+/
+sum(all tracked brand mention occurrences * effective_demand_weight)
+```
+
+Use this to estimate answer-space share under realistic demand weighting.
 
 ## Average Position
 
@@ -83,6 +115,18 @@ average sentiment value across responses where the brand appears
 ```
 
 Rank brands by sentiment score descending. Brands without mentions should have no sentiment rank.
+
+## Qualified Recommendation Rate
+
+Definition:
+
+```text
+weighted responses where brand is recommended with positive or neutral framing
+/
+weighted responses where brand appears
+```
+
+This is not the same as visibility. A brand can be visible but not strongly recommended.
 
 ## Client-Versus-Competitor Rank
 
