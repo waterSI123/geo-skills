@@ -10,6 +10,7 @@ optional `agents/`, `references/`, `scripts/`, and `assets/` directories.
 
 | Skill | Status | Description |
 | --- | --- | --- |
+| `geo-client-intake-normalizer` | Ready | Extract and normalize messy client materials into standardized GEO project intake fields for downstream skills. |
 | `geo-intent-prompt-generator` | Ready | Generate GEO / AI Visibility commercial-search topics and realistic AI monitoring prompts from services, personas, market, language, platform, competitors, and optional website research. |
 
 Planned examples:
@@ -25,6 +26,7 @@ geo-skills/
 ├── scripts/
 │   └── install-skill.sh
 └── skills/
+    ├── geo-client-intake-normalizer/
     └── geo-intent-prompt-generator/
         ├── SKILL.md
         ├── agents/
@@ -44,7 +46,7 @@ Install all skills:
 Install one skill:
 
 ```bash
-./scripts/install-skill.sh geo-intent-prompt-generator
+./scripts/install-skill.sh geo-client-intake-normalizer
 ```
 
 By default, the script installs into `${CODEX_HOME:-$HOME/.codex}/skills`.
