@@ -12,6 +12,7 @@ optional `agents/`, `references/`, `scripts/`, and `assets/` directories.
 | --- | --- | --- |
 | `geo-client-intake-normalizer` | Ready | Extract and normalize messy client materials into standardized GEO project intake fields for downstream skills. |
 | `geo-intent-prompt-generator` | Ready | Generate GEO / AI Visibility commercial-search topics and realistic AI monitoring prompts from services, personas, market, language, platform, competitors, and optional website research. |
+| `geo-monitor-runner` | Ready | Create manual ChatGPT run sheets, import completed answers, and validate raw GEO monitoring data. |
 
 Planned examples:
 
@@ -27,6 +28,7 @@ geo-skills/
 │   └── install-skill.sh
 └── skills/
     ├── geo-client-intake-normalizer/
+    ├── geo-monitor-runner/
     └── geo-intent-prompt-generator/
         ├── SKILL.md
         ├── agents/
